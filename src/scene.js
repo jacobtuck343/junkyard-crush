@@ -8,7 +8,7 @@ export class YardScene {
   constructor(canvas, settings) {
     this.settings=settings;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
     this.renderer.setPixelRatio(Math.min(devicePixelRatio,settings.reduced?1:1.6));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.setClearColor(PALETTE.fog);this.renderer.outputColorSpace=THREE.SRGBColorSpace;
-    this.scene=new THREE.Scene();this.scene.fog=new THREE.Fog(PALETTE.fog,35,80);this.camera=new THREE.PerspectiveCamera(35,1,.1,100);this.target=new THREE.Vector3(0,0,0);this.shake=0;this.time=0;this.popTime=0;
+    this.scene=new THREE.Scene();this.scene.fog=new THREE.Fog(PALETTE.fog,60,120);this.camera=new THREE.PerspectiveCamera(35,1,.1,100);this.target=new THREE.Vector3(0,0,0);this.shake=0;this.time=0;this.popTime=0;
     this.scene.add(new THREE.HemisphereLight(0xfff5e4,0xbb9c77,2));const sun=new THREE.DirectionalLight(0xffedcb,2.5);sun.position.set(-8,18,8);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-19,right:19,top:19,bottom:-19,near:1,far:50});sun.shadow.normalBias=.035;sun.shadow.bias=-.0003;this.scene.add(sun);
     this.materials=new Map();this.boxGeometry=new THREE.BoxGeometry(1,1,1);this.cylinderGeometry=new THREE.CylinderGeometry(1,1,1,6);this.particles=[];this.rewardBits=[];
     this.gateQueue=[];this.gateAdvance=0;this.buildYard();this.buildGate();this.buildCrusher();this.buildOperations();this.buildCounty();this.buildPlayer();this.buildForklift();this.vehicle=this.buildVehicle(CONFIG.vehicles[0]);this.scene.add(this.vehicle);this.vehicle.position.set(CONFIG.spawn.x,0,CONFIG.spawn.z);
@@ -136,7 +136,7 @@ export class YardScene {
   burst(perfect){this.dustTime=this.settings.reduced?0:.7;this.shake=perfect?.22:.12;let i=0;for(const p of this.particles){if(i++>(this.settings.reduced?10:perfect?45:25))break;p.life=.5+Math.random()*.8;p.mesh.visible=true;p.mesh.position.set((Math.random()-.5)*2,.8,CONFIG.crusher.z+(Math.random()-.5)*2);p.v.set((Math.random()-.5)*6,2+Math.random()*5,(Math.random()-.5)*6);p.mesh.rotation.set(Math.random()*3,Math.random()*3,0);}}
   pop(){this.popTime=.3;}
   reward(){for(let i=0;i<this.rewardBits.length;i++){const p=this.rewardBits[i];p.life=.7+i*.04;p.mesh.visible=true;p.mesh.position.set((Math.random()-.5)*2,1+Math.random(),CONFIG.crusher.z+Math.random()*2);}}
-  resize(){const w=innerWidth,h=innerHeight;this.renderer.setSize(w,h,false);this.camera.aspect=w/h;const portrait=w/h<.85;this.camera.fov=portrait?44:35;const distance=portrait?33:26;this.cameraBase=new THREE.Vector3(distance*.47,distance*.76,distance*.69);this.camera.position.copy(this.cameraBase);this.camera.lookAt(0,0,-.6);this.camera.updateProjectionMatrix();}
+  resize(){const w=innerWidth,h=innerHeight;this.renderer.setSize(w,h,false);this.camera.aspect=w/h;const portrait=w/h<.85;this.camera.fov=portrait?44:35;const distance=portrait?46:31;this.cameraBase=new THREE.Vector3(distance*.47,distance*.9,distance*.69);this.camera.position.copy(this.cameraBase);this.camera.lookAt(0,0,-.6);this.camera.updateProjectionMatrix();}
   project(x,y,z){const p=new THREE.Vector3(x,y,z).project(this.camera);return{x:(p.x*.5+.5)*innerWidth,y:(-p.y*.5+.5)*innerHeight};}
   update(dt,model,moving){
     this.updateGate(dt);this.popTime=Math.max(0,this.popTime-dt);this.player.scale.setScalar(1+(this.settings.reduced?0:Math.sin(this.popTime/.3*Math.PI)*.1));
@@ -160,9 +160,11 @@ export class YardScene {
     if(this.rope.visible){const p=this.rope.geometry.attributes.position;p.setXYZ(0,this.player.position.x,.8,this.player.position.z);p.setXYZ(1,this.vehicle.position.x,.5,this.vehicle.position.z);p.needsUpdate=true;this.rope.geometry.computeBoundingSphere();}
     for(const p of this.particles){if(p.life<=0)continue;p.life-=dt;p.v.y-=14*dt;p.mesh.position.addScaledVector(p.v,dt);p.mesh.rotation.x+=dt*4;if(p.mesh.position.y<.1){p.mesh.position.y=.1;p.v.y=Math.abs(p.v.y)*.2;p.v.x*=.8;p.v.z*=.8;}if(p.life<=0)p.mesh.visible=false;}
     for(const p of this.rewardBits){if(p.life<=0)continue;p.life-=dt;p.mesh.position.lerp(this.player.position.clone().add(new THREE.Vector3(0,1+Math.abs(Math.sin(p.life*10))*.35,0)),1-Math.exp(-dt*5));p.mesh.rotation.y+=dt*8;if(p.life<=0)p.mesh.visible=false;}
-    this.shake=Math.max(0,this.shake-dt*.5);const focusX=innerWidth/innerHeight<.85?Math.max(-10,Math.min(model.save.landOwned?7:0,this.player.position.x*1.15)):model.save.landOwned?Math.min(7,Math.max(-3,this.player.position.x*.55)):Math.min(0,Math.max(-3,this.player.position.x*.45));this.target.x=THREE.MathUtils.damp(this.target.x,focusX,3,dt);this.target.z=THREE.MathUtils.damp(this.target.z,model.save.depotOwned?Math.max(0,(this.player.position.z-5)*.65):0,3,dt);this.camera.position.copy(this.cameraBase).multiplyScalar(model.save.landOwned?1.07:1);this.camera.position.x+=this.target.x;this.camera.position.z+=this.target.z;if(!this.settings.reduced)this.camera.position.x+=Math.sin(t*90)*this.shake*this.settings.shake;this.camera.lookAt(this.target.x,0,this.target.z-.6);this.renderer.render(this.scene,this.camera);
+    this.shake=Math.max(0,this.shake-dt*.5);const focusX=innerWidth/innerHeight<.85?Math.max(-6,Math.min(model.save.landOwned?5:-4,this.player.position.x*.35-3.5)):model.save.landOwned?Math.min(7,Math.max(-3,this.player.position.x*.55)):Math.min(0,Math.max(-3,this.player.position.x*.45));this.target.x=THREE.MathUtils.damp(this.target.x,focusX,3,dt);this.target.z=THREE.MathUtils.damp(this.target.z,model.save.depotOwned?Math.max(0,(this.player.position.z-5)*.65):0,3,dt);this.camera.position.copy(this.cameraBase).multiplyScalar(model.save.landOwned?1.07:1);this.camera.position.x+=this.target.x;this.camera.position.z+=this.target.z;if(!this.settings.reduced)this.camera.position.x+=Math.sin(t*90)*this.shake*this.settings.shake;this.camera.lookAt(this.target.x,0,this.target.z-.6);this.renderer.render(this.scene,this.camera);
   }
 }
+
+
 
 
 

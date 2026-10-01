@@ -1,5 +1,5 @@
 export const CONFIG = Object.freeze({
-  gameVersion: '0.6.0', economyVersion: '1.2-phase4.1', onboardingVersion: '2',
+  gameVersion: '0.6.1', economyVersion: '1.2-phase4.1', onboardingVersion: '2',
   speed: 5.5, acceleration: 15, towSpring: 10, attachRadius: 1.8,
   pressSeconds: 3, perfectStart: .70, perfectEnd: .85, perfectMultiplier: 1.5,
   upgradeBaseCost: 60, upgradeGrowth: 1.8, upgradeMax: 5, speedFactor: .85,
@@ -67,6 +67,7 @@ export function validateContent(config = CONFIG) {
   if (!(config.perfectStart >= 0 && config.perfectEnd > config.perfectStart && config.perfectEnd < 1)) throw new Error('Invalid Perfect Zone');
   return true;
 }
+
 
 
 

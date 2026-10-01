@@ -4,5 +4,6 @@ Playable low-poly browser game. This repository contains the tested production b
 
 Move with WASD/arrows or drag on the yard. Hold and release CRUSH in the green zone. Progress saves in the current browser for this site address.
 
-Version: 0.6.0 Three.js and font licenses are included under vendor.
+Version: 0.6.1 Three.js and font licenses are included under vendor.
+
 
