@@ -1,3 +1,5 @@
+import {GATE} from './delivery-gate.js';
+import {installSaveTransfer} from './save-transfer-ui.js';
 import {platform} from './platform.js';
 import {CONFIG,clamp,upgradeCost,perfectBounds,validateContent,costFor,capacityFor,rewardFor,collectionPool} from './config.js';
 import {nextGoal,goalCost,nextVehicle} from './progression.js';
@@ -22,10 +24,10 @@ function boot(){
   const audio=new AudioFeedback(save.settings),yard=new YardScene($('game'),save.settings),input=new GameInput($('game'),$('press-button'),$('joystick'));
   let toastUntil=0,celebrationUntil=0,cashDeltaUntil=0,displayCash=save.cash,paused=false,upgradeDwell=0,upgradeArmed=true,moved=false,strainClock=0,musicClock=0,sessionEnded=false;
   let towDirection={x:0,z:1},previous=performance.now();const velocity={x:0,z:0};
-  const persist=()=>{save.lastSeen=Date.now();if(!store.save(save))toast(store.warning);};
+  let replacingSave=false;const persist=()=>{if(replacingSave)return;save.lastSeen=Date.now();if(!store.save(save))toast(store.warning);};
   const model=new GameModel(save,analytics,persist,(name,data={})=>{
     if(['hook','dock','press','reward','upgrade'].includes(name))audio.cue(name);
-    if(name==='hook'){yard.pop();toast('Hooked up. Bring it to the glowing press.');}
+    if(name==='hook'){yard.pop();yard.advanceGateQueue(save,model.vehicle);toast('Picked up! The line is moving. Bring this wreck to the press.');}
     if(name==='dock'){input.clear();toast('Hold Space or CRUSH. Release in the green zone.');}
     if(name==='impact'){audio.cue('impact',data.perfect);yard.burst(data.perfect);$('celebration-title').textContent=data.perfect?'PERFECT CRUSH!':'GOOD CRUSH.';$('celebration-value').textContent='+$'+data.payout;celebrationUntil=performance.now()+1600;}
     if(name==='reward'){yard.reward();$('cash-delta').textContent='+$'+data.amount;cashDeltaUntil=performance.now()+1400;}
@@ -40,9 +42,9 @@ function boot(){
     if(name==='rare'){toast('◆ RARE SALVAGE! This wreck pays 2.5×.');audio.cue('upgrade');}
     if(name==='land'){toast('EAST LOT OPEN! Your yard just got bigger.');audio.cue('upgrade');yard.shake=.2;$('celebration-title').textContent='ROOM TO GROW!';$('celebration-value').textContent='EAST LOT OPEN';celebrationUntil=performance.now()+2400;}
     if(name==='blocked')toast(data.kind==='power'?`CRUSHER POWER ${data.vehicle.resistance} REQUIRED`:`HANDLING CAPACITY ${data.vehicle.weight.toLocaleString()} kg REQUIRED`);
-    if(name==='spawn')yard.spawn(model.vehicle);
+    if(name==='spawn')yard.spawn(model.vehicle,save);
   });
-  yard.spawn(model.vehicle);input.canPress=()=>['ready','pressing'].includes(model.state);
+  yard.spawn(model.vehicle,save);input.canPress=()=>['ready','pressing'].includes(model.state);
   analytics.emit('game_loaded',{loadMs:Math.round(performance.now())});
   if(store.warning)toast(store.warning);
   function toast(message){$('toast').textContent=message;toastUntil=performance.now()+3500;}
@@ -56,6 +58,7 @@ function boot(){
   $('upgrade-buy').onclick=()=>buy(nextGoal(save).kind==='land'?'speed':nextGoal(save).kind??'speed');
   for(const [kind,upgrade] of Object.entries(CONFIG.upgrades)){const button=document.createElement('button');button.type='button';button.id='buy-'+kind;button.innerHTML=`<span>${upgrade.icon}</span><strong>${upgrade.name}</strong><small>${upgrade.detail}</small><b></b>`;button.onclick=()=>buy(kind);$('upgrade-options').append(button);}
   $('land-buy').onclick=()=>{if(near(CONFIG.land))model.buyLand();$('game').focus({preventScroll:true});};
+  installSaveTransfer({save,store,settle:()=>model.settleReward(),reload:()=>{replacingSave=true;location.reload();}});
   const phase3=installPhase3UI({save,model,near,pause,toast});
   const property=installPropertyUI({save,model,store,pause,toast});
   const candy=installCandyUI({save,pause});let workshopPinned=false,workshopDismissed=false;
@@ -76,7 +79,7 @@ function boot(){
     velocity.x+=(dx*speed-velocity.x)*(1-Math.exp(-CONFIG.acceleration*dt));velocity.z+=(dz*speed-velocity.z)*(1-Math.exp(-CONFIG.acceleration*dt));
     const player=yard.player.position;const nextX=clamp(player.x+velocity.x*dt,CONFIG.bounds.minX,save.landOwned?CONFIG.land.expandedMaxX:CONFIG.bounds.maxX),nextZ=clamp(player.z+velocity.z*dt,CONFIG.bounds.minZ,save.depotOwned?13.8:CONFIG.bounds.maxZ);
     // Keep the mechanic outside the bed and the office while permitting a generous delivery zone.
-    const blocked=(x,z)=>(Math.abs(x)<2.1&&z<-2.2)||(x<-5.1&&z<-4)||(save.balerOwned&&Math.abs(x-13)<1.6&&Math.abs(z+2)<1.2);
+    const blocked=(x,z)=>(x<-9&&(z<GATE.openingMinZ||z>GATE.openingMaxZ))||(Math.abs(x)<2.1&&z<-2.2)||(x<-5.1&&z<-4)||(save.balerOwned&&Math.abs(x-13)<1.6&&Math.abs(z+2)<1.2);
     if(!blocked(nextX,player.z))player.x=nextX;
     if(!blocked(player.x,nextZ))player.z=nextZ;
     if(moving){yard.player.rotation.y=Math.atan2(dx,dz);towDirection={x:-dx,z:-dz};}
@@ -111,10 +114,11 @@ function boot(){
     const upcoming=nextVehicle(save);$('next-vehicle').textContent=upcoming&&upcoming.id!==model.vehicle.id?`NEXT: ${upcoming.name} · Power ${upcoming.resistance}${upcoming.land?' · East lot':''}`:`${capacityFor(save).name} · ${capacityFor(save).kg.toLocaleString()} kg lift`;
     const machine=yard.project(0,4.4,CONFIG.crusher.z),pad=yard.project(CONFIG.upgrade.x,.6,CONFIG.upgrade.z);
     positionLabel('machine-label',machine);positionLabel('upgrade-label',pad);positionLabel('land-label',yard.project(CONFIG.land.x,.6,CONFIG.land.z));
-    let step=1,title='Find your first wreck.',detail='Walk up close. We’ll handle the hook.';
+    let step=1,title='Pick up a wreck at the gate.',detail='Head left to the gate. Drive close to the front car to collect it.';
     if(model.state==='towing'){step=2;title='Bring it to the press.';detail='Follow the arrows. Pull up to the glowing ring.';}
     else if(ready){step=3;title='Make some scrap.';detail='Hold. Build pressure. Release in the green zone.';}
     else if(save.crushed>0){step=4;const next=propertyGoal(save)??(save.yardId==='county'?null:phase3Goal(save));title=next?.title??goal.title;detail=next?.detail??goal.detail+(cost?(save.cash>=cost?' Ready to buy.':' $'+(cost-save.cash)+' to go.'):'');}
+    if(model.state==='waiting'&&save.crushed>0)detail+=' Next wreck: west pickup gate.';
     $('objective').textContent=title;$('objective-detail').textContent=detail;$('objective-step').textContent='0'+step;$('objective-fill').style.width=step*25+'%';
     phase3.update();property.update();candy.update();
   }
@@ -122,5 +126,8 @@ function boot(){
   requestAnimationFrame(frame);
   // Development tools are removed by the production build, including their module.
 }
+
+
+
 
 

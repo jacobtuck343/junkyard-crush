@@ -1,12 +1,12 @@
 export const CONFIG = Object.freeze({
-  gameVersion: '0.5.0', economyVersion: '1.2-phase4.1', onboardingVersion: '2',
+  gameVersion: '0.6.0', economyVersion: '1.2-phase4.1', onboardingVersion: '2',
   speed: 5.5, acceleration: 15, towSpring: 10, attachRadius: 1.8,
   pressSeconds: 3, perfectStart: .70, perfectEnd: .85, perfectMultiplier: 1.5,
   upgradeBaseCost: 60, upgradeGrowth: 1.8, upgradeMax: 5, speedFactor: .85,
   rewardDelay: .85, respawnDelay: 1.4, vacuumRadius: 4, particleBudget: 90,
   crusher: { x: 0, z: -3.7, radius: 2.4 }, upgrade: { x: 5.5, z: -1, radius: 1.6 },
-  playerStart: { x: -3.2, z: 3.5 }, spawn: { x: -3.2, z: 1.5 },
-  bounds: { minX: -9, maxX: 8, minZ: -6, maxZ: 7 },
+  playerStart: { x: -7.4, z: 3.5 }, spawn: { x: -11.4, z: 3.5 },
+  bounds: { minX: -12.7, maxX: 8, minZ: -6, maxZ: 7 },
   land: { x: 8.4, z: 2.2, radius: 1.65, cost: 400, expandedMaxX: 17.5 },
   upgrades: {
     speed: { name: 'Press speed', field: 'speedLevel', max: 5, base: 60, growth: 1.8, detail: '15% faster press', icon: '↯' },
@@ -67,5 +67,7 @@ export function validateContent(config = CONFIG) {
   if (!(config.perfectStart >= 0 && config.perfectEnd > config.perfectStart && config.perfectEnd < 1)) throw new Error('Invalid Perfect Zone');
   return true;
 }
+
+
 
 
