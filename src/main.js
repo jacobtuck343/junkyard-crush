@@ -1,19 +1,19 @@
-import {GATE} from './delivery-gate.js';
-import {installSaveTransfer} from './save-transfer-ui.js';
-import {platform} from './platform.js';
-import {CONFIG,clamp,upgradeCost,perfectBounds,validateContent,costFor,capacityFor,rewardFor,collectionPool} from './config.js';
-import {nextGoal,goalCost,nextVehicle} from './progression.js';
-import {SaveStore} from './save.js';
-import {Analytics} from './analytics.js';
-import {GameModel} from './model.js';
-import {GameInput} from './input.js';
-import {AudioFeedback} from './audio.js';
-import {YardScene} from './scene.js';
-import {PerformanceMonitor} from './performance.js';
-import {installPhase3UI,phase3Goal} from './phase3-ui.js';
-import {installPropertyUI} from './property-ui.js';
-import {propertyGoal} from './property.js';
-import {installCandyUI} from './candy-ui.js';
+import {GATE} from './delivery-gate.js?v=0.6.1';
+import {installSaveTransfer} from './save-transfer-ui.js?v=0.6.1';
+import {platform} from './platform.js?v=0.6.1';
+import {CONFIG,clamp,upgradeCost,perfectBounds,validateContent,costFor,capacityFor,rewardFor,collectionPool} from './config.js?v=0.6.1';
+import {nextGoal,goalCost,nextVehicle} from './progression.js?v=0.6.1';
+import {SaveStore} from './save.js?v=0.6.1';
+import {Analytics} from './analytics.js?v=0.6.1';
+import {GameModel} from './model.js?v=0.6.1';
+import {GameInput} from './input.js?v=0.6.1';
+import {AudioFeedback} from './audio.js?v=0.6.1';
+import {YardScene} from './scene.js?v=0.6.1';
+import {PerformanceMonitor} from './performance.js?v=0.6.1';
+import {installPhase3UI,phase3Goal} from './phase3-ui.js?v=0.6.1';
+import {installPropertyUI} from './property-ui.js?v=0.6.1';
+import {propertyGoal} from './property.js?v=0.6.1';
+import {installCandyUI} from './candy-ui.js?v=0.6.1';
 const $=id=>document.getElementById(id);
 try{boot();}catch(error){$('fatal').hidden=false;$('fatal-detail').textContent='A browser with WebGL 2 support is required. '+error.message;console.error(error);}
 function boot(){

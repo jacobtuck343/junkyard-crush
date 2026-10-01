@@ -1,4 +1,4 @@
-import { CONFIG, ALL_VEHICLES, clamp } from './config.js';
+import { CONFIG, ALL_VEHICLES, clamp } from './config.js?v=0.6.1';
 export const SAVE_KEY = 'junkyard-crush.save.v4';
 export const LEGACY_SAVE_KEY = 'junkyard-crush.save';
 export function freshSave() { return { version: 4, yardId:'rustbucket', yardSales:0, legacyBonus:0, soldYardValue:0, surplusPermit:false, countyCollectionClaimed:false, cash: 0, balerOwned:false, workerOwned:false, depotOwned:false, scrapLoads:0, balerRemaining:0, balerPayout:0, balesSold:0, jobIndex:0, jobActive:false, jobProgress:0, jobsCompleted:0, lastSeen:0, collectionCounts:{}, rareDiscoveries:[], collectionClaimed:false, rareCollectionClaimed:false, speedLevel: 0, powerLevel:0, handlingLevel:0, valueLevel:0, zoneLevel:0, magnetLevel:0, landOwned:false, discoveries:[], crushed: 0, perfects: 0, lifetimeCash: 0, settings: { master: .7, music: .2, sfx: .8, shake: .55, reduced: false }, firsts: [] }; }

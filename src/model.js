@@ -1,5 +1,5 @@
-import { CONFIG, clamp, pressDuration, perfectBounds, rewardFor, costFor, capacityFor, canHandle, canCrush, chooseVehicle } from './config.js';
-import {YardOperations} from './operations.js';
+import { CONFIG, clamp, pressDuration, perfectBounds, rewardFor, costFor, capacityFor, canHandle, canCrush, chooseVehicle } from './config.js?v=0.6.1';
+import {YardOperations} from './operations.js?v=0.6.1';
 export class GameModel {
   constructor(save, analytics, persist = () => {}, emit = () => {}) {
     this.save = save; this.analytics = analytics; this.persist = persist; this.emit = emit;
