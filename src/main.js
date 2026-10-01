@@ -1,20 +1,22 @@
-import {GATE} from './delivery-gate.js?v=0.6.2';
-import {installWorkshopGuide} from './workshop-guide.js?v=0.6.2';
-import {installSaveTransfer} from './save-transfer-ui.js?v=0.6.2';
-import {platform} from './platform.js?v=0.6.2';
-import {CONFIG,clamp,upgradeCost,perfectBounds,validateContent,costFor,capacityFor,rewardFor,collectionPool} from './config.js?v=0.6.2';
-import {nextGoal,goalCost,nextVehicle} from './progression.js?v=0.6.2';
-import {SaveStore} from './save.js?v=0.6.2';
-import {Analytics} from './analytics.js?v=0.6.2';
-import {GameModel} from './model.js?v=0.6.2';
-import {GameInput} from './input.js?v=0.6.2';
-import {AudioFeedback} from './audio.js?v=0.6.2';
-import {YardScene} from './scene.js?v=0.6.2';
-import {PerformanceMonitor} from './performance.js?v=0.6.2';
-import {installPhase3UI,phase3Goal} from './phase3-ui.js?v=0.6.2';
-import {installPropertyUI} from './property-ui.js?v=0.6.2';
-import {propertyGoal} from './property.js?v=0.6.2';
-import {installCandyUI} from './candy-ui.js?v=0.6.2';
+import {GATE} from './delivery-gate.js?v=0.7.0';
+import {installCargoUI} from './cargo-ui.js?v=0.7.0';
+import {crushEffort,pressDuration} from './config.js?v=0.7.0';
+import {installWorkshopGuide} from './workshop-guide.js?v=0.7.0';
+import {installSaveTransfer} from './save-transfer-ui.js?v=0.7.0';
+import {platform} from './platform.js?v=0.7.0';
+import {CONFIG,clamp,upgradeCost,perfectBounds,validateContent,costFor,capacityFor,rewardFor,collectionPool} from './config.js?v=0.7.0';
+import {nextGoal,goalCost,nextVehicle} from './progression.js?v=0.7.0';
+import {SaveStore} from './save.js?v=0.7.0';
+import {Analytics} from './analytics.js?v=0.7.0';
+import {GameModel} from './model.js?v=0.7.0';
+import {GameInput} from './input.js?v=0.7.0';
+import {AudioFeedback} from './audio.js?v=0.7.0';
+import {YardScene} from './scene.js?v=0.7.0';
+import {PerformanceMonitor} from './performance.js?v=0.7.0';
+import {installPhase3UI,phase3Goal} from './phase3-ui.js?v=0.7.0';
+import {installPropertyUI} from './property-ui.js?v=0.7.0';
+import {propertyGoal} from './property.js?v=0.7.0';
+import {installCandyUI} from './candy-ui.js?v=0.7.0';
 const $=id=>document.getElementById(id);
 try{boot();}catch(error){$('fatal').hidden=false;$('fatal-detail').textContent='A browser with WebGL 2 support is required. '+error.message;console.error(error);}
 function boot(){
@@ -38,6 +40,7 @@ function boot(){
     if(name==='job-paid'){toast('Mara: “Good work.” +$'+data.amount);audio.cue('reward');}
     if(name==='rare-found')toast('Rare discovery: '+data.name+' added to your salvage book.');
     if(name==='bale'){$('cash-delta').textContent='BALE +$'+data.amount;cashDeltaUntil=performance.now()+1800;audio.cue('reward');}
+    if(name==='bale-ready'){toast('Bale ready! Pick it up at the baler and take it to shipping.');audio.cue('upgrade');}
     if(name==='discovery'){toast(`DISCOVERED: ${data.name} · ${data.count}/${collectionPool(save).length} wrecks`);audio.cue('upgrade');}
     if(name==='yard-changed'){yard.player.position.set(CONFIG.playerStart.x,0,CONFIG.playerStart.z);input.clear();velocity.x=velocity.z=0;displayCash=save.cash;audio.cue('upgrade');$('celebration-title').textContent='YOUR NEXT CHAPTER';$('celebration-value').textContent='COUNTY YARD';celebrationUntil=performance.now()+3500;}
     if(name==='rare'){toast('◆ RARE SALVAGE! This wreck pays 2.5×.');audio.cue('upgrade');}
@@ -61,6 +64,7 @@ function boot(){
   $('land-buy').onclick=()=>{if(near(CONFIG.land))model.buyLand();$('game').focus({preventScroll:true});};
   installSaveTransfer({save,store,settle:()=>model.settleReward(),reload:()=>{replacingSave=true;location.reload();}});
   const phase3=installPhase3UI({save,model,near,pause,toast});
+  const cargo=installCargoUI({save,model,near,toast});
   const yardStatus=document.createElement('div');yardStatus.id='yard-status';document.body.append(yardStatus);yardStatus.append($('delivery-card'),$('operations-hint'));
   const property=installPropertyUI({save,model,store,pause,toast});
   const candy=installCandyUI({save,pause});let workshopPinned=false,workshopDismissed=false;
@@ -125,7 +129,11 @@ function boot(){
     if(model.state==='waiting'&&save.crushed>0)detail+=' Next wreck: west pickup gate.';
     if(workshopGuide.active&&!onPad&&!ready&&model.state!=='impact'){title='Head to the green workshop pad.';detail='Follow the blue WORKSHOP arrow. Upgrades open when you arrive.';}
     $('objective').textContent=title;$('objective-detail').textContent=detail;$('objective-step').textContent='0'+step;$('objective-fill').style.width=step*25+'%';
-    phase3.update();property.update();candy.update();workshopGuide.update(onPad,showWorkshop||document.body.classList.contains('operations-open')||ready||model.state==='impact');
+    if(save.carriedScrap){$('objective').textContent='Load the baler.';$('objective-detail').textContent='Carry this scrap to the baler in the east lot. Three loads make a bale.';}
+    if(save.carriedBaleValue){$('objective').textContent='Ship your finished bale.';$('objective-detail').textContent='Take it to the yellow SHIPPING pad in the east lot for payment.';}
+    const effort=crushEffort(model.vehicle,save.powerLevel);$('gauge-title').textContent=model.pressure>=zone.start&&model.pressure<=zone.end?'RELEASE NOW!':model.state==='pressing'?(effort>.8?'HEAVY LOAD · PRESS STRAINING':effort>.55?'TOUGH WRECK · KEEP PRESSING':'CRUSHING · KEEP PRESSING'):`HOLD TO PRESS · ${pressDuration(save.speedLevel,model.vehicle.weight).toFixed(1)}s FULL STROKE`;
+    $('gauge').classList.toggle('heavy-load',effort>.8);
+    phase3.update();cargo.update();property.update();candy.update();workshopGuide.update(onPad,showWorkshop||document.body.classList.contains('operations-open')||ready||model.state==='impact'||!!save.carriedScrap||!!save.carriedBaleValue);
   }
   function positionLabel(id,p){const el=$(id),margin=el.offsetWidth/2+8,minTop=id==='machine-label'?225:innerWidth<600?195:150;el.style.left=clamp(p.x,margin,innerWidth-margin)+'px';el.style.top=clamp(p.y,minTop,innerHeight-200)+'px';}
   requestAnimationFrame(frame);

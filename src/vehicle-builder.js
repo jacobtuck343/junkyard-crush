@@ -1,5 +1,5 @@
-import * as THREE from '../vendor/three.module.js?v=0.6.2';
-import {PALETTE,vehicleColor} from './visual-style.js?v=0.6.2';
+import * as THREE from '../vendor/three.module.js?v=0.7.0';
+import {PALETTE,vehicleColor} from './visual-style.js?v=0.7.0';
 
 // Recipes share geometry/materials through the scene factory. Add a recipe, not a new renderer.
 export function buildVehicle(factory,def){

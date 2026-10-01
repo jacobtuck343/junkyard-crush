@@ -1,4 +1,4 @@
-import {CONFIG,clamp} from './config.js?v=0.6.2';
+import {CONFIG,clamp} from './config.js?v=0.7.0';
 
 export function installWorkshopGuide({yard,closeWorkshop}){
  const button=document.createElement('button');button.id='show-workshop';button.className='primary';button.textContent='SHOW ME THE WORKSHOP';

@@ -1,5 +1,5 @@
-import { CONFIG, clamp, pressDuration, perfectBounds, rewardFor, costFor, capacityFor, canHandle, canCrush, chooseVehicle } from './config.js?v=0.6.2';
-import {YardOperations} from './operations.js?v=0.6.2';
+import { CONFIG, clamp, pressDuration, perfectBounds, rewardFor, costFor, capacityFor, canHandle, canCrush, chooseVehicle } from './config.js?v=0.7.0';
+import {YardOperations} from './operations.js?v=0.7.0';
 export class GameModel {
   constructor(save, analytics, persist = () => {}, emit = () => {}) {
     this.save = save; this.analytics = analytics; this.persist = persist; this.emit = emit;
@@ -10,7 +10,7 @@ export class GameModel {
   event(name, data={}) { this.analytics.emit(name,{ speedLevel:this.save.speedLevel, cash:this.save.cash, vehicleId:this.vehicle.id,...data }); this.emit(name,data); }
   first(name) { if (!this.save.firsts.includes(name)) { this.save.firsts.push(name); this.event(name); } }
   blocked(kind){const key=kind+this.vehicle.id;if(!this.seenGates.has(key)){this.seenGates.add(key);this.event(kind+'_required_seen',{required:kind==='power'?this.vehicle.resistance:this.vehicle.weight});this.emit('blocked',{kind,vehicle:this.vehicle});}return false;}
-  attach() { if (this.state !== 'waiting') return false; if(!canHandle(this.save,this.vehicle))return this.blocked('capacity');this.state='towing'; this.first('first_vehicle_grabbed'); this.emit('hook'); return true; }
+  attach() { if (this.state !== 'waiting'||this.save.carriedScrap||this.save.carriedBaleValue) return false; if(!canHandle(this.save,this.vehicle))return this.blocked('capacity');this.state='towing'; this.first('first_vehicle_grabbed'); this.emit('hook'); return true; }
   dock() { if(this.state !== 'towing') return false;if(!canCrush(this.save,this.vehicle))return this.blocked('power');this.state='ready'; this.pressure=0; this.emit('dock'); return true; }
   announce(){if(this.vehicle.rarity==='Rare'){this.first('first_rare_vehicle');this.event('rare_delivery');this.emit('rare');this.persist();}}
   refreshDelivery(){if(this.state!=='waiting')return;const next=chooseVehicle(this.save);if(next.id!==this.vehicle.id||next.rarity!==this.vehicle.rarity){this.vehicle=next;this.emit('spawn');this.announce();}}
@@ -54,3 +54,4 @@ export class GameModel {
   buyLand(){if(this.progressionDisabled||this.save.landOwned||this.save.cash<CONFIG.land.cost)return false;this.save.cash-=CONFIG.land.cost;this.save.landOwned=true;this.first('first_land_purchase');this.persist();this.emit('land');this.refreshDelivery();return true;}
   settleReward() { if(this.state==='impact')this.collect(); }
 }
+

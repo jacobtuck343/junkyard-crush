@@ -1,5 +1,5 @@
 export const CONFIG = Object.freeze({
-  gameVersion: '0.6.2', economyVersion: '1.2-phase4.1', onboardingVersion: '2',
+  gameVersion: '0.7.0', economyVersion: '1.2-phase4.1', onboardingVersion: '2',
   speed: 5.5, acceleration: 15, towSpring: 10, attachRadius: 1.8,
   pressSeconds: 3, perfectStart: .70, perfectEnd: .85, perfectMultiplier: 1.5,
   upgradeBaseCost: 60, upgradeGrowth: 1.8, upgradeMax: 5, speedFactor: .85,
@@ -34,7 +34,8 @@ export const CONFIG = Object.freeze({
 });
 export const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 export const upgradeCost = level => Math.round(CONFIG.upgradeBaseCost * CONFIG.upgradeGrowth ** level);
-export const pressDuration = (level, weight) => CONFIG.pressSeconds * CONFIG.speedFactor ** level * (1 + (weight-900)/4000);
+export const pressDuration = (level, weight) => CONFIG.pressSeconds * CONFIG.speedFactor ** level * (1 + (weight-900)/2200);
+export const crushEffort=(vehicle,powerLevel)=>clamp((vehicle.weight-900)/5000+.45*vehicle.resistance/(powerLevel+1),.12,1);
 export const perfectBounds = (level, weight, zoneLevel=0) => ({start:CONFIG.perfectStart,end:Math.min(.97,Math.max(CONFIG.perfectStart+(CONFIG.perfectEnd-CONFIG.perfectStart)*(1+.15*zoneLevel),CONFIG.perfectStart+.25/pressDuration(level,weight)))});
 export const COUNTY_VEHICLES=[
   {id:'veh_servicevan',name:'County Service Van',kind:'van',weight:2300,resistance:3,value:190,color:'#e0dcc4',length:3.4,tags:['County','Commercial','Steel'],rarity:'Common',destruction:'three-stage',audio:'heavy-metal',county:true},
@@ -67,6 +68,7 @@ export function validateContent(config = CONFIG) {
   if (!(config.perfectStart >= 0 && config.perfectEnd > config.perfectStart && config.perfectEnd < 1)) throw new Error('Invalid Perfect Zone');
   return true;
 }
+
 
 
 

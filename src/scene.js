@@ -1,9 +1,10 @@
-import {GATE,forecastDeliveries,gatePose} from './delivery-gate.js?v=0.6.2';
-import * as THREE from '../vendor/three.module.js?v=0.6.2';
-import {CONFIG} from './config.js?v=0.6.2';
-import {PALETTE,styleColor} from './visual-style.js?v=0.6.2';
-import {buildVehicle} from './vehicle-builder.js?v=0.6.2';
-import {batchStatic} from './static-batches.js?v=0.6.2';
+import {GATE,forecastDeliveries,gatePose} from './delivery-gate.js?v=0.7.0';
+import * as THREE from '../vendor/three.module.js?v=0.7.0';
+import {CONFIG,crushEffort} from './config.js?v=0.7.0';
+import {OPERATIONS} from './operations.js?v=0.7.0';
+import {PALETTE,styleColor} from './visual-style.js?v=0.7.0';
+import {buildVehicle} from './vehicle-builder.js?v=0.7.0';
+import {batchStatic} from './static-batches.js?v=0.7.0';
 export class YardScene {
   constructor(canvas, settings) {
     this.settings=settings;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
@@ -11,7 +12,7 @@ export class YardScene {
     this.scene=new THREE.Scene();this.scene.fog=new THREE.Fog(PALETTE.fog,60,120);this.camera=new THREE.PerspectiveCamera(35,1,.1,100);this.target=new THREE.Vector3(0,0,0);this.shake=0;this.time=0;this.popTime=0;
     this.scene.add(new THREE.HemisphereLight(0xfff5e4,0xbb9c77,2));const sun=new THREE.DirectionalLight(0xffedcb,2.5);sun.position.set(-8,18,8);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-19,right:19,top:19,bottom:-19,near:1,far:50});sun.shadow.normalBias=.035;sun.shadow.bias=-.0003;this.scene.add(sun);
     this.materials=new Map();this.boxGeometry=new THREE.BoxGeometry(1,1,1);this.cylinderGeometry=new THREE.CylinderGeometry(1,1,1,6);this.particles=[];this.rewardBits=[];
-    this.gateQueue=[];this.gateAdvance=0;this.buildYard();this.buildGate();this.buildCrusher();this.buildOperations();this.buildCounty();this.buildPlayer();this.buildForklift();this.vehicle=this.buildVehicle(CONFIG.vehicles[0]);this.scene.add(this.vehicle);this.vehicle.position.set(CONFIG.spawn.x,0,CONFIG.spawn.z);
+    this.gateQueue=[];this.gateAdvance=0;this.buildYard();this.buildGate();this.buildCrusher();this.buildOperations();this.buildCounty();this.buildPlayer();this.buildForklift();this.buildCargo();this.vehicle=this.buildVehicle(CONFIG.vehicles[0]);this.scene.add(this.vehicle);this.vehicle.position.set(CONFIG.spawn.x,0,CONFIG.spawn.z);
     const rocks=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),this.mat(PALETTE.shade),8),rockTransform=new THREE.Object3D();rocks.castShadow=true;rocks.receiveShadow=true;
     for(let i=0;i<8;i++){rockTransform.position.set(-15+i*4.6,.1,-11-i%2);rockTransform.scale.set(.45+i%3*.12,.35,.5);rockTransform.rotation.set(.2*i,.7*i,0);rockTransform.updateMatrix();rocks.setMatrixAt(i,rockTransform.matrix);}this.scene.add(rocks);
     const lineGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);this.rope=new THREE.Line(lineGeo,new THREE.LineBasicMaterial({color:0xd6c395}));this.scene.add(this.rope);this.rope.visible=false;
@@ -132,6 +133,14 @@ export class YardScene {
     this.loaderReinforcement=this.box(1.5,.26,.5,'#718a70',g,0,.6,-1);this.loaderReinforcement.visible=false;
   }
   buildVehicle(def){return buildVehicle(this,def);}
+  buildCargo(){
+    this.cargoPile=new THREE.Group();this.scene.add(this.cargoPile);this.cargoPile.position.set(OPERATIONS.scrap.x,0,OPERATIONS.scrap.z);this.looseChunks=[];
+    for(let i=0;i<6;i++)this.looseChunks.push(this.box(.7,.35,.65,i%2?PALETTE.metal:'#3A86FF',this.cargoPile,(i%2-.5)*.8,.2+Math.floor(i/2)*.36,0));
+    const label=this.text('SCRAP PICKUP',2.7,PALETTE.ink);label.rotation.x=-Math.PI/2;label.position.set(0,.08,1);this.cargoPile.add(label);
+    this.carriedCargo=new THREE.Group();this.player.add(this.carriedCargo);this.carriedCargo.position.set(0,1.15,1.1);this.box(.9,.55,.8,PALETTE.metal,this.carriedCargo,0,0,0);this.box(.95,.1,.84,PALETTE.yellow,this.carriedCargo,0,.1,0);
+    this.shippingPad=new THREE.Group();this.scene.add(this.shippingPad);this.shippingPad.position.set(OPERATIONS.shipping.x,0,OPERATIONS.shipping.z);this.box(3,.06,2.8,PALETTE.yellow,this.shippingPad,0,.08,0);const sign=this.text('SHIPPING',2.8,PALETTE.ink);sign.rotation.x=-Math.PI/2;sign.position.set(0,.13,0);this.shippingPad.add(sign);
+    this.finishedBales=new THREE.Group();this.scene.add(this.finishedBales);this.finishedBales.position.set(15,0,-.2);this.finishedChunks=[];for(let i=0;i<3;i++)this.finishedChunks.push(this.box(.85,.65,.85,PALETTE.metal,this.finishedBales,0,.35+i*.68,0));
+  }
   spawn(def,save){this.scene.remove(this.vehicle);this.vehicle=this.buildVehicle(def);this.scene.add(this.vehicle);this.vehicle.position.set(CONFIG.spawn.x,0,CONFIG.spawn.z);if(save)this.resetGateQueue(save,def);}
   burst(perfect){this.dustTime=this.settings.reduced?0:.7;this.shake=perfect?.22:.12;let i=0;for(const p of this.particles){if(i++>(this.settings.reduced?10:perfect?45:25))break;p.life=.5+Math.random()*.8;p.mesh.visible=true;p.mesh.position.set((Math.random()-.5)*2,.8,CONFIG.crusher.z+(Math.random()-.5)*2);p.v.set((Math.random()-.5)*6,2+Math.random()*5,(Math.random()-.5)*6);p.mesh.rotation.set(Math.random()*3,Math.random()*3,0);}}
   pop(){this.popTime=.3;}
@@ -142,20 +151,21 @@ export class YardScene {
     this.updateGate(dt);this.popTime=Math.max(0,this.popTime-dt);this.player.scale.setScalar(1+(this.settings.reduced?0:Math.sin(this.popTime/.3*Math.PI)*.1));
     this.dustTime=Math.max(0,this.dustTime-dt);this.dust.visible=this.dustTime>0;if(this.dust.visible){const age=1-this.dustTime/.7;this.dust.material.opacity=(1-age)*.6;for(let i=0;i<12;i++){const angle=i/12*Math.PI*2;this.dustMatrix.position.set(Math.cos(angle)*(1+age*1.6),.6+age*.9,CONFIG.crusher.z+Math.sin(angle)*(1+age));this.dustMatrix.scale.setScalar(.18+age*.45);this.dustMatrix.updateMatrix();this.dust.setMatrixAt(i,this.dustMatrix.matrix);}this.dust.instanceMatrix.needsUpdate=true;this.dust.computeBoundingSphere();}
     this.time+=dt;const t=this.time;this.upgradeFins.forEach((fin,i)=>fin.visible=i<model.save.speedLevel);
+    this.cargoPile.visible=model.save.balerOwned;this.shippingPad.visible=model.save.balerOwned;this.looseChunks.forEach((m,i)=>m.visible=i<model.save.scrapLoads);this.finishedBales.visible=model.save.balerOwned;this.finishedChunks.forEach((m,i)=>m.visible=i<model.save.readyBales.length);this.carriedCargo.visible=!!(model.save.carriedScrap||model.save.carriedBaleValue);this.carriedCargo.scale.setScalar(model.save.carriedBaleValue?1.25:1);
     const rig=model.save.handlingLevel;this.forklift.visible=rig>0;this.loaderReinforcement.visible=rig>=3;this.forklift.scale.setScalar(1+Math.max(0,rig-1)*.1);this.body.position.y=(rig?.25:0)+(moving&&!rig?Math.abs(Math.sin(t*12))*.06:Math.sin(t*2)*.016);this.legs.forEach((leg,i)=>leg.rotation.x=moving&&!rig?Math.sin(t*12+i*Math.PI)*.5:0);
     this.extension.visible=model.save.landOwned;this.landSign.visible=!model.save.landOwned;this.landPad.visible=!model.save.landOwned;this.eastFence.forEach(m=>m.visible=!model.save.landOwned);
     this.jobBoard.visible=model.save.landOwned;this.projectMarker.visible=model.save.landOwned;this.baler.visible=model.save.balerOwned;this.worker.visible=model.save.workerOwned;this.depot.visible=model.save.depotOwned;
     this.county.visible=model.save.yardId==='county';
     this.balerRam.position.y=model.save.balerRemaining>0?1.35+Math.sin(t*4)*.35:1.6;
-    const working=model.save.balerRemaining>0,route=(Math.sin(t*.9)+1)/2;this.worker.position.set(working?10.8+route*1.8:11.3,0,-3.8);this.workerLoad.visible=working;this.worker.rotation.y=Math.cos(t*.9)>0?Math.PI/2:-Math.PI/2;
-    this.stock.forEach((m,i)=>m.visible=model.save.landOwned&&i<Math.ceil(model.save.scrapLoads/3));
+    const working=model.save.workerOwned&&!model.save.workerPaused&&model.save.balerRemaining>0,route=(Math.sin(t*.9)+1)/2;this.worker.position.set(working?10.8+route*1.8:11.3,0,-3.8);this.workerLoad.visible=working;this.worker.rotation.y=Math.cos(t*.9)>0?Math.PI/2:-Math.PI/2;
+    this.stock.forEach((m,i)=>m.visible=model.save.landOwned&&i<model.save.balerFeed);
     this.crusher.scale.z=1+model.save.powerLevel*.055;
-    const crushing=['ready','pressing','impact','collecting'].includes(model.state);const squash=model.state==='pressing'?model.pressure*.7:model.state==='impact'||model.state==='collecting'?.86:0;
+    const crushing=['ready','pressing','impact','collecting'].includes(model.state);const squash=model.state==='pressing'?Math.pow(model.pressure,1+crushEffort(model.vehicle,model.save.powerLevel)*.7)*.7:model.state==='impact'||model.state==='collecting'?.86:0;
     const rest=model.vehicle.kind==='truck'?3.1:['van','bus','surplus'].includes(model.vehicle.kind)?2.8:2.5;
     this.press.position.y=THREE.MathUtils.damp(this.press.position.y,rest-squash*(rest-.92)/.86,model.state==='impact'?30:12,dt);
     const shell=this.vehicle.userData.shell;shell.scale.set(1+squash*.18,1-squash,squash>.3?1-squash*.13:1);shell.visible=model.state!=='collecting';this.vehicle.userData.bale.visible=model.state==='collecting';
     if(crushing){this.vehicle.position.set(0,.45,CONFIG.crusher.z);this.vehicle.rotation.y=0;}
-    if(model.state==='pressing'){this.crusher.position.x=Math.sin(t*67)*model.pressure*.018;this.vehicle.rotation.z=Math.sin(t*42)*model.pressure*.025;}else{this.crusher.position.x=0;this.vehicle.rotation.z=0;}
+    if(model.state==='pressing'){const effort=crushEffort(model.vehicle,model.save.powerLevel),strain=Math.sin(Math.PI*model.pressure),motion=this.settings.reduced?.25:1;this.crusher.position.x=Math.sin(t*35)*strain*(.015+effort*.085)*motion;this.vehicle.rotation.z=Math.sin(t*24)*strain*(.015+effort*.045)*motion;this.press.position.y+=Math.sin(t*29)*strain*effort*.09*motion;shell.scale.y+=Math.abs(Math.sin(t*18))*strain*effort*.07;}else{this.crusher.position.x=0;this.vehicle.rotation.z=0;}
     this.ring.material.opacity=model.state==='towing'?.5+Math.sin(t*4)*.3:.2;this.rope.visible=model.state==='towing'&&!rig;
     if(this.rope.visible){const p=this.rope.geometry.attributes.position;p.setXYZ(0,this.player.position.x,.8,this.player.position.z);p.setXYZ(1,this.vehicle.position.x,.5,this.vehicle.position.z);p.needsUpdate=true;this.rope.geometry.computeBoundingSphere();}
     for(const p of this.particles){if(p.life<=0)continue;p.life-=dt;p.v.y-=14*dt;p.mesh.position.addScaledVector(p.v,dt);p.mesh.rotation.x+=dt*4;if(p.mesh.position.y<.1){p.mesh.position.y=.1;p.v.y=Math.abs(p.v.y)*.2;p.v.x*=.8;p.v.z*=.8;}if(p.life<=0)p.mesh.visible=false;}
@@ -163,6 +173,9 @@ export class YardScene {
     this.shake=Math.max(0,this.shake-dt*.5);const focusX=innerWidth/innerHeight<.85?Math.max(-6,Math.min(model.save.landOwned?5:-4,this.player.position.x*.35-3.5)):model.save.landOwned?Math.min(7,Math.max(-3,this.player.position.x*.55)):Math.min(0,Math.max(-3,this.player.position.x*.45));this.target.x=THREE.MathUtils.damp(this.target.x,focusX,3,dt);this.target.z=THREE.MathUtils.damp(this.target.z,model.save.depotOwned?Math.max(0,(this.player.position.z-5)*.65):0,3,dt);this.camera.position.copy(this.cameraBase).multiplyScalar(model.save.landOwned?1.07:1);this.camera.position.x+=this.target.x;this.camera.position.z+=this.target.z;if(!this.settings.reduced)this.camera.position.x+=Math.sin(t*90)*this.shake*this.settings.shake;this.camera.lookAt(this.target.x,0,this.target.z-.6);this.renderer.render(this.scene,this.camera);
   }
 }
+
+
+
 
 
 

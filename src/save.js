@@ -1,11 +1,15 @@
-import { CONFIG, ALL_VEHICLES, clamp } from './config.js?v=0.6.2';
-export const SAVE_KEY = 'junkyard-crush.save.v4';
+import { CONFIG, ALL_VEHICLES, clamp } from './config.js?v=0.7.0';
+export const SAVE_KEY = 'junkyard-crush.save.v5';
 export const LEGACY_SAVE_KEY = 'junkyard-crush.save';
-export function freshSave() { return { version: 4, yardId:'rustbucket', yardSales:0, legacyBonus:0, soldYardValue:0, surplusPermit:false, countyCollectionClaimed:false, cash: 0, balerOwned:false, workerOwned:false, depotOwned:false, scrapLoads:0, balerRemaining:0, balerPayout:0, balesSold:0, jobIndex:0, jobActive:false, jobProgress:0, jobsCompleted:0, lastSeen:0, collectionCounts:{}, rareDiscoveries:[], collectionClaimed:false, rareCollectionClaimed:false, speedLevel: 0, powerLevel:0, handlingLevel:0, valueLevel:0, zoneLevel:0, magnetLevel:0, landOwned:false, discoveries:[], crushed: 0, perfects: 0, lifetimeCash: 0, settings: { master: .7, music: .2, sfx: .8, shake: .55, reduced: false }, firsts: [] }; }
+export function freshSave() { return { version: 5, carriedScrap:0, carriedBaleValue:0, balerFeed:0, readyBales:[], workerPaused:false, yardId:'rustbucket', yardSales:0, legacyBonus:0, soldYardValue:0, surplusPermit:false, countyCollectionClaimed:false, cash: 0, balerOwned:false, workerOwned:false, depotOwned:false, scrapLoads:0, balerRemaining:0, balerPayout:0, balesSold:0, jobIndex:0, jobActive:false, jobProgress:0, jobsCompleted:0, lastSeen:0, collectionCounts:{}, rareDiscoveries:[], collectionClaimed:false, rareCollectionClaimed:false, speedLevel: 0, powerLevel:0, handlingLevel:0, valueLevel:0, zoneLevel:0, magnetLevel:0, landOwned:false, discoveries:[], crushed: 0, perfects: 0, lifetimeCash: 0, settings: { master: .7, music: .2, sfx: .8, shake: .55, reduced: false }, firsts: [] }; }
 export function normalizeSave(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Invalid save');
-  if (![0,1,2,3,4].includes(raw.version)) throw new Error('Unsupported save version');
+  if (![0,1,2,3,4,5].includes(raw.version)) throw new Error('Unsupported save version');
   const save = freshSave();
+  for(const key of ['carriedScrap','carriedBaleValue','balerFeed']){const value=raw[key]??0;if(!Number.isSafeInteger(value)||value<0)throw new Error('Invalid cargo '+key);save[key]=value;}
+  if(save.carriedScrap>1||save.balerFeed>3||![0,180,225].includes(save.carriedBaleValue)||(save.carriedScrap&&save.carriedBaleValue))throw new Error('Invalid carried load');
+  if(raw.readyBales!==undefined&&(!Array.isArray(raw.readyBales)||raw.readyBales.length>60||raw.readyBales.some(value=>![180,225].includes(value))))throw new Error('Invalid finished bales');
+  save.readyBales=[...(raw.readyBales??[])];save.workerPaused=raw.workerPaused===true;
   save.yardId=raw.yardId==='county'?'county':'rustbucket';save.yardSales=save.yardId==='county'?1:0;save.legacyBonus=save.yardSales;
   save.soldYardValue=Number.isSafeInteger(raw.soldYardValue)&&raw.soldYardValue>=0?raw.soldYardValue:0;save.surplusPermit=save.yardId==='county'&&raw.surplusPermit===true;save.countyCollectionClaimed=raw.countyCollectionClaimed===true;
   for (const key of ['cash','speedLevel','powerLevel','handlingLevel','valueLevel','zoneLevel','magnetLevel','crushed','perfects','lifetimeCash']) {
@@ -34,12 +38,12 @@ export function normalizeSave(raw) {
 export class SaveStore {
   constructor(storage) { this.storage = storage; this.warning = ''; this.readOnly = false; }
   load() {
-    for (const key of [SAVE_KEY, SAVE_KEY+'.backup', 'junkyard-crush.save.v3', 'junkyard-crush.save.v3.backup', 'junkyard-crush.save.v2', 'junkyard-crush.save.v2.backup', LEGACY_SAVE_KEY, LEGACY_SAVE_KEY+'.backup']) {
+    for (const key of [SAVE_KEY, SAVE_KEY+'.backup', 'junkyard-crush.save.v4', 'junkyard-crush.save.v4.backup', 'junkyard-crush.save.v3', 'junkyard-crush.save.v3.backup', 'junkyard-crush.save.v2', 'junkyard-crush.save.v2.backup', LEGACY_SAVE_KEY, LEGACY_SAVE_KEY+'.backup']) {
       try {
         const text = this.storage?.getItem(key);
         if (text) {
           const raw = JSON.parse(text);
-          if (raw.version > 4) { this.readOnly = true; this.warning = 'This save needs a newer game version. Saving is paused to protect it.'; return freshSave(); }
+          if (raw.version > 5) { this.readOnly = true; this.warning = 'This save needs a newer game version. Saving is paused to protect it.'; return freshSave(); }
           const save = normalizeSave(raw);
           if (key.endsWith('backup')) this.warning = 'Recovered your backup save.';
           else if(key===LEGACY_SAVE_KEY)this.warning='Phase 1 progress restored. Welcome to your growing yard.';
@@ -60,6 +64,7 @@ export class SaveStore {
   }
   checkpoint(state){try{if(this.readOnly)return false;this.storage.setItem(SAVE_KEY+'.before-yard-sale',JSON.stringify(normalizeSave(state)));return true;}catch{this.warning='Could not save the pre-sale backup. The sale was not completed.';return false;}}
 }
+
 
 
 
