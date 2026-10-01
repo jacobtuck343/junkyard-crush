@@ -1,4 +1,4 @@
-import {CONFIG,vehiclePool} from './config.js?v=0.6.1';
+import {CONFIG,vehiclePool} from './config.js?v=0.6.2';
 
 export const PROJECTS={
   baler:{name:'Build the baler',cost:6000,detail:'Turn 3 scrap loads into $180.',requires:'landOwned'},

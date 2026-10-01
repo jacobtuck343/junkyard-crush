@@ -1,4 +1,4 @@
-import {CONFIG,costFor,capacityFor,collectionPool} from './config.js?v=0.6.1';
+import {CONFIG,costFor,capacityFor,collectionPool} from './config.js?v=0.6.2';
 export function nextGoal(save) {
   if(save.speedLevel===0)return{kind:'speed',title:'Give your press a boost.',detail:'Walk onto the green workshop pad.',target:CONFIG.upgrade};
   if(save.handlingLevel===0)return{kind:'handling',title:'Your first forklift.',detail:'A proper rig for the heavier jobs.',target:CONFIG.upgrade};

@@ -1,5 +1,5 @@
-import {CONFIG,collectionPool} from './config.js?v=0.6.1';
-import {PROJECTS,OPERATIONS,jobFor,jobReward,storageCapacity} from './operations.js?v=0.6.1';
+import {CONFIG,collectionPool} from './config.js?v=0.6.2';
+import {PROJECTS,OPERATIONS,jobFor,jobReward,storageCapacity} from './operations.js?v=0.6.2';
 
 export function phase3Goal(save){
   if(!save.discoveries.includes('veh_van'))return null;

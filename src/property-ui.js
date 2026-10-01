@@ -1,5 +1,5 @@
-import {valuation,yardValue,saleRequirements,canSell,countyStartingCash,sellYard,buySurplusPermit,claimCountyCollection} from './property.js?v=0.6.1';
-import {COUNTY_VEHICLES} from './config.js?v=0.6.1';
+import {valuation,yardValue,saleRequirements,canSell,countyStartingCash,sellYard,buySurplusPermit,claimCountyCollection} from './property.js?v=0.6.2';
+import {COUNTY_VEHICLES} from './config.js?v=0.6.2';
 export function installPropertyUI({save,model,store,pause,toast}){
   const button=document.createElement('button');button.id='property-open';button.textContent='Yard value';document.body.append(button);
   const dialog=document.createElement('dialog');dialog.className='property-dialog';dialog.setAttribute('aria-label','Property office');document.body.append(dialog);let review=false;

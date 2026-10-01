@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#FFD23F"><title>Junkyard Crush · Rustbucket Salvage</title><link rel="stylesheet" href="style.css?v=0.6.1"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#FFD23F"><title>Junkyard Crush · Rustbucket Salvage</title><link rel="stylesheet" href="style.css?v=0.6.2"></head>
 <body><div id="loading" role="status"><strong>JUNKYARD CRUSH</strong><span>Opening the yard…</span></div>
 <canvas id="game" tabindex="0" aria-label="Junkyard game. Use WASD or arrow keys to move. Approach a wreck to tow it. Hold Space and release in the green zone to crush."></canvas>
 <header><div class="brand"><span class="brand-icon">JC<span>↘</span></span><div><strong>JUNKYARD<span>CRUSH</span></strong><small>RUSTBUCKET SALVAGE <i>•</i> YARD 01</small></div></div><div class="cash"><span>YOUR CASH</span><strong id="cash">$0</strong><small id="cash-delta"></small></div><button id="settings-open" class="icon-button" aria-label="Open settings">⚙</button></header>
@@ -16,7 +16,7 @@
 <button id="press-button" aria-label="Hold to press; release in the perfect zone">HOLD TO<br><strong>CRUSH</strong></button><div id="joystick"><i></i></div><span id="touch-hint">DRAG TO MOVE</span>
 <dialog id="settings"><div class="dialog-title"><div><span class="eyebrow">YOUR YARD, YOUR WAY</span><h2>Take a breather.</h2></div><button id="settings-close" class="icon-button" aria-label="Close settings">×</button></div><label>Master volume<input id="master" type="range" min="0" max="1" step=".05"></label><label>Music<input id="music" type="range" min="0" max="1" step=".05"></label><label>Sound effects<input id="sfx" type="range" min="0" max="1" step=".05"></label><label>Screen shake<input id="shake" type="range" min="0" max="1" step=".05"></label><label>Reduced effects<input id="reduced" type="checkbox"></label><p>Progress saves after each payout and upgrade.</p><p class="settings-note">WASD / arrows or drag to move. Walk near a wreck to attach. Bring it to the press. Hold Space or the Crush button, then release in the marked zone.</p><button id="resume" class="primary">Back to the yard →</button></dialog>
 <div id="fatal" hidden><h1>The yard couldn’t open.</h1><p id="fatal-detail"></p><button onclick="location.reload()">Try again</button></div>
-<script type="module" src="src/bootstrap.js?v=0.6.1"></script>
+<script type="module" src="src/bootstrap.js?v=0.6.2"></script>
 </body></html>
 
 
