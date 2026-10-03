@@ -20,6 +20,7 @@ export class AudioFeedback {
     if(name==='reward')[440,554,659,880].forEach((f,i)=>this.tone(f*v,.18,.17,i*.065));
     if(name==='upgrade'){this.burst(.2,.25,900);[262,330,392,523].forEach((f,i)=>this.tone(f,.35,.23,i*.08,'triangle'));}
   }
+  silly(shape){const seed=[...shape].reduce((n,c)=>n+c.charCodeAt(0),0);[0,1,2].forEach(i=>this.tone(180+seed%260+i*120,.16,.16,.15+i*.12,'triangle',i%2?120:700));}
   strain(pressure){if(!this.ctx||pressure<.1)return;this.tone(60+pressure*110,.1,.045,0,'sawtooth');}
   music(){if(!this.ctx||this.muted||this.settings.music===0)return;[130.81,196,261.63].forEach((f,i)=>this.tone(f,2.8,.036,i*.2,'sine',f,'music'));}
 }

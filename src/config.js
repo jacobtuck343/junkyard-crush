@@ -1,5 +1,6 @@
+import {specialFor} from './fun-content.js?v=0.8.0';
 export const CONFIG = Object.freeze({
-  gameVersion: '0.7.0', economyVersion: '1.2-phase4.1', onboardingVersion: '2',
+  gameVersion: '0.8.0', economyVersion: '1.2-phase4.1', onboardingVersion: '2',
   speed: 5.5, acceleration: 15, towSpring: 10, attachRadius: 1.8,
   pressSeconds: 3, perfectStart: .70, perfectEnd: .85, perfectMultiplier: 1.5,
   upgradeBaseCost: 60, upgradeGrowth: 1.8, upgradeMax: 5, speedFactor: .85,
@@ -56,7 +57,7 @@ export function chooseVehicle(save) {
   const best=available.length-1;
   const rare=save.landOwned&&save.crushed>=6&&save.crushed%8===6;
   const choice=unseen??available[rare?Math.floor(save.crushed/8)%available.length:save.crushed%4===3?Math.max(0,best-1):best];
-  return {...choice,rarity:rare?'Rare':'Common'};
+  const special=specialFor(save.crushed);return {...choice,rarity:rare?'Rare':'Common',...(special?{special:special.id,specialShape:special.shape,specialColor:special.color,specialLine:special.line,name:special.name}: {})};
 }
 export function validateContent(config = CONFIG) {
   if(!Array.isArray(config.vehicles)||config.vehicles.length===0)throw new Error('At least one vehicle is required');

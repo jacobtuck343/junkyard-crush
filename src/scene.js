@@ -1,10 +1,10 @@
-import {GATE,forecastDeliveries,gatePose} from './delivery-gate.js?v=0.7.0';
-import * as THREE from '../vendor/three.module.js?v=0.7.0';
-import {CONFIG,crushEffort} from './config.js?v=0.7.0';
-import {OPERATIONS} from './operations.js?v=0.7.0';
-import {PALETTE,styleColor} from './visual-style.js?v=0.7.0';
-import {buildVehicle} from './vehicle-builder.js?v=0.7.0';
-import {batchStatic} from './static-batches.js?v=0.7.0';
+import {GATE,forecastDeliveries,gatePose} from './delivery-gate.js?v=0.8.0';
+import * as THREE from '../vendor/three.module.js?v=0.8.0';
+import {CONFIG,crushEffort} from './config.js?v=0.8.0';
+import {OPERATIONS} from './operations.js?v=0.8.0';
+import {PALETTE,styleColor} from './visual-style.js?v=0.8.0';
+import {buildVehicle} from './vehicle-builder.js?v=0.8.0';
+import {batchStatic} from './static-batches.js?v=0.8.0';
 export class YardScene {
   constructor(canvas, settings) {
     this.settings=settings;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
@@ -142,12 +142,13 @@ export class YardScene {
     this.finishedBales=new THREE.Group();this.scene.add(this.finishedBales);this.finishedBales.position.set(15,0,-.2);this.finishedChunks=[];for(let i=0;i<3;i++)this.finishedChunks.push(this.box(.85,.65,.85,PALETTE.metal,this.finishedBales,0,.35+i*.68,0));
   }
   spawn(def,save){this.scene.remove(this.vehicle);this.vehicle=this.buildVehicle(def);this.scene.add(this.vehicle);this.vehicle.position.set(CONFIG.spawn.x,0,CONFIG.spawn.z);if(save)this.resetGateQueue(save,def);}
-  burst(perfect){this.dustTime=this.settings.reduced?0:.7;this.shake=perfect?.22:.12;let i=0;for(const p of this.particles){if(i++>(this.settings.reduced?10:perfect?45:25))break;p.life=.5+Math.random()*.8;p.mesh.visible=true;p.mesh.position.set((Math.random()-.5)*2,.8,CONFIG.crusher.z+(Math.random()-.5)*2);p.v.set((Math.random()-.5)*6,2+Math.random()*5,(Math.random()-.5)*6);p.mesh.rotation.set(Math.random()*3,Math.random()*3,0);}}
+  burst(perfect){this.particles.forEach((p,i)=>p.mesh.material=this.mat(i%3===0?'#ffc465':i%3===1?'#a5aaa0':'#6c7568'));this.dustTime=this.settings.reduced?0:.7;this.shake=perfect?.22:.12;let i=0;for(const p of this.particles){if(i++>(this.settings.reduced?10:perfect?45:25))break;p.life=.5+Math.random()*.8;p.mesh.visible=true;p.mesh.position.set((Math.random()-.5)*2,.8,CONFIG.crusher.z+(Math.random()-.5)*2);p.v.set((Math.random()-.5)*6,2+Math.random()*5,(Math.random()-.5)*6);p.mesh.rotation.set(Math.random()*3,Math.random()*3,0);}}
   pop(){this.popTime=.3;}
   reward(){for(let i=0;i<this.rewardBits.length;i++){const p=this.rewardBits[i];p.life=.7+i*.04;p.mesh.visible=true;p.mesh.position.set((Math.random()-.5)*2,1+Math.random(),CONFIG.crusher.z+Math.random()*2);}}
   resize(){const w=innerWidth,h=innerHeight;this.renderer.setSize(w,h,false);this.camera.aspect=w/h;const portrait=w/h<.85;this.camera.fov=portrait?44:35;const distance=portrait?43:29.5;this.cameraBase=new THREE.Vector3(distance*.47,distance*.9,distance*.69);this.camera.position.copy(this.cameraBase);this.camera.lookAt(0,0,-.6);this.camera.updateProjectionMatrix();}
   project(x,y,z){const p=new THREE.Vector3(x,y,z).project(this.camera);return{x:(p.x*.5+.5)*innerWidth,y:(-p.y*.5+.5)*innerHeight};}
   update(dt,model,moving){
+    if(this.vehicle.userData.salvage)this.vehicle.userData.salvage.visible=model.save.salvagedDelivery!==model.save.crushed;
     this.updateGate(dt);this.popTime=Math.max(0,this.popTime-dt);this.player.scale.setScalar(1+(this.settings.reduced?0:Math.sin(this.popTime/.3*Math.PI)*.1));
     this.dustTime=Math.max(0,this.dustTime-dt);this.dust.visible=this.dustTime>0;if(this.dust.visible){const age=1-this.dustTime/.7;this.dust.material.opacity=(1-age)*.6;for(let i=0;i<12;i++){const angle=i/12*Math.PI*2;this.dustMatrix.position.set(Math.cos(angle)*(1+age*1.6),.6+age*.9,CONFIG.crusher.z+Math.sin(angle)*(1+age));this.dustMatrix.scale.setScalar(.18+age*.45);this.dustMatrix.updateMatrix();this.dust.setMatrixAt(i,this.dustMatrix.matrix);}this.dust.instanceMatrix.needsUpdate=true;this.dust.computeBoundingSphere();}
     this.time+=dt;const t=this.time;this.upgradeFins.forEach((fin,i)=>fin.visible=i<model.save.speedLevel);

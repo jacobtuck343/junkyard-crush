@@ -1,4 +1,4 @@
-import {CONFIG,COUNTY_VEHICLES,costFor,chooseVehicle} from './config.js?v=0.7.0';
+import {CONFIG,COUNTY_VEHICLES,costFor,chooseVehicle} from './config.js?v=0.8.0';
 
 export const SALE_TARGET=100000;
 export function valuation(save){
@@ -17,7 +17,7 @@ export const countyStartingCash=save=>2500+Math.floor(yardValue(save)*.1);
 export function sellYard(model,commit=()=>true){
   const s=model.save;if(!canSell(s)||model.state!=='waiting'||model.progressionDisabled)return false;
   const value=yardValue(s),cash=countyStartingCash(s);
-  const next={...s,yardId:'county',yardSales:1,legacyBonus:1,soldYardValue:value,cash,speedLevel:2,powerLevel:2,handlingLevel:2,valueLevel:1,zoneLevel:0,magnetLevel:0,landOwned:true,balerOwned:true,workerOwned:true,depotOwned:false,carriedScrap:0,carriedBaleValue:0,balerFeed:0,readyBales:[],workerPaused:false,scrapLoads:0,balerRemaining:0,balerPayout:0,jobActive:false,jobProgress:0,jobIndex:0,lastSeen:Date.now()};
+  const next={...s,yardId:'county',yardSales:1,legacyBonus:1,soldYardValue:value,cash,speedLevel:2,powerLevel:2,handlingLevel:2,valueLevel:1,zoneLevel:0,magnetLevel:0,landOwned:true,balerOwned:true,workerOwned:true,depotOwned:false,craneOwned:false,craneCargo:0,craneTimer:0,craneMode:'hold',carriedScrap:0,carriedBaleValue:0,balerFeed:0,readyBales:[],workerPaused:false,scrapLoads:0,balerRemaining:0,balerPayout:0,jobActive:false,jobProgress:0,jobIndex:0,lastSeen:Date.now()};
   if(commit(next)===false)return false;Object.assign(s,next);
   model.vehicle=chooseVehicle(s);model.pressure=0;model.pendingReward=0;model.operations.analytics.yardId='county';model.event('yard_sold',{valuation:value,startingCash:cash});model.persist();model.emit('yard-changed');model.emit('spawn');model.announce();return true;
 }

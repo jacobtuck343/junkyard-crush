@@ -1,5 +1,6 @@
-import * as THREE from '../vendor/three.module.js?v=0.7.0';
-import {PALETTE,vehicleColor} from './visual-style.js?v=0.7.0';
+import {sculpture} from './fun-art.js?v=0.8.0';
+import * as THREE from '../vendor/three.module.js?v=0.8.0';
+import {PALETTE,vehicleColor} from './visual-style.js?v=0.8.0';
 
 // Recipes share geometry/materials through the scene factory. Add a recipe, not a new renderer.
 export function buildVehicle(factory,def){
@@ -25,6 +26,8 @@ export function buildVehicle(factory,def){
  for(let i=0;i<2;i++){const side=i?1:-1;const patch=box(.035,.17,.35,dark,side*(width/2+.025),.68,(i-.5)*length*.42);patch.rotation.x=(i-.5)*.18;}
  if(def.county)for(const x of [-width*.51,width*.51])box(.04,.13,length*.72,PALETTE.yellow,x,.95,-.1);
  if(def.rarity==='Rare'){const diamond=box(.32,.32,.32,'#69E6FF',0,2.35);diamond.rotation.z=Math.PI/4;}
+ if(def.special){const topper=sculpture(factory,def.specialShape,def.specialColor);topper.scale.setScalar(.6);topper.position.y=['bus','truck','van'].includes(def.kind)?1.95:1.55;shell.add(topper);}
+ const salvage=factory.box(.5,.2,.45,'#FFD23F',shell,0,.98,length*.36);group.userData.salvage=salvage;
  const bale=factory.box(1.4,.3,1.45,color,group,0,.33,0);bale.visible=false;group.userData.bale=bale;
  return group;
 }

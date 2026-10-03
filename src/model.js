@@ -1,21 +1,22 @@
-import { CONFIG, clamp, pressDuration, perfectBounds, rewardFor, costFor, capacityFor, canHandle, canCrush, chooseVehicle } from './config.js?v=0.7.0';
-import {YardOperations} from './operations.js?v=0.7.0';
+import {YardFun} from './fun.js?v=0.8.0';
+import { CONFIG, clamp, pressDuration, perfectBounds, rewardFor, costFor, capacityFor, canHandle, canCrush, chooseVehicle } from './config.js?v=0.8.0';
+import {YardOperations} from './operations.js?v=0.8.0';
 export class GameModel {
   constructor(save, analytics, persist = () => {}, emit = () => {}) {
     this.save = save; this.analytics = analytics; this.persist = persist; this.emit = emit;
     this.state = 'waiting'; this.pressure = 0; this.timer = 0; this.vehicle = chooseVehicle(save);this.seenGates=new Set();
     this.pendingReward = 0; this.progressionDisabled = false;
-    this.operations=new YardOperations(save,analytics,persist,emit);
+    this.fun=new YardFun(this);this.operations=new YardOperations(save,analytics,persist,emit);
   }
   event(name, data={}) { this.analytics.emit(name,{ speedLevel:this.save.speedLevel, cash:this.save.cash, vehicleId:this.vehicle.id,...data }); this.emit(name,data); }
   first(name) { if (!this.save.firsts.includes(name)) { this.save.firsts.push(name); this.event(name); } }
   blocked(kind){const key=kind+this.vehicle.id;if(!this.seenGates.has(key)){this.seenGates.add(key);this.event(kind+'_required_seen',{required:kind==='power'?this.vehicle.resistance:this.vehicle.weight});this.emit('blocked',{kind,vehicle:this.vehicle});}return false;}
   attach() { if (this.state !== 'waiting'||this.save.carriedScrap||this.save.carriedBaleValue) return false; if(!canHandle(this.save,this.vehicle))return this.blocked('capacity');this.state='towing'; this.first('first_vehicle_grabbed'); this.emit('hook'); return true; }
   dock() { if(this.state !== 'towing') return false;if(!canCrush(this.save,this.vehicle))return this.blocked('power');this.state='ready'; this.pressure=0; this.emit('dock'); return true; }
-  announce(){if(this.vehicle.rarity==='Rare'){this.first('first_rare_vehicle');this.event('rare_delivery');this.emit('rare');this.persist();}}
+  announce(){if(this.vehicle.special){this.event('silly_delivery',{special:this.vehicle.special});this.emit('silly',{name:this.vehicle.name});}if(this.vehicle.rarity==='Rare'){this.first('first_rare_vehicle');this.event('rare_delivery');this.emit('rare');this.persist();}}
   refreshDelivery(){if(this.state!=='waiting')return;const next=chooseVehicle(this.save);if(next.id!==this.vehicle.id||next.rarity!==this.vehicle.rarity){this.vehicle=next;this.emit('spawn');this.announce();}}
   tick(dt, held) {
-    if(!this.progressionDisabled)this.operations.tick(dt);
+    if(!this.progressionDisabled){this.fun.tick(dt);this.operations.tick(dt);}
     if (this.state === 'ready' && held) { this.state='pressing'; this.emit('press'); }
     if (this.state === 'pressing') {
       if (!held) this.finish();
@@ -38,6 +39,7 @@ export class GameModel {
   collect() {
     if(this.state!=='impact')return;
     const amount=this.pendingReward; this.pendingReward=0;
+    if(this.vehicle.special&&!this.progressionDisabled&&!this.save.specialDiscoveries.includes(this.vehicle.special)){this.save.specialDiscoveries.push(this.vehicle.special);this.event('silly_stamp',{special:this.vehicle.special});}
     this.save.crushed++; if(this.lastPerfect)this.save.perfects++;
     if(!this.save.discoveries.includes(this.vehicle.id)){this.save.discoveries.push(this.vehicle.id);this.event('vehicle_discovered',{count:this.save.discoveries.length});this.emit('discovery',{name:this.vehicle.name,count:this.save.discoveries.length});}
     if(!this.progressionDisabled) { this.save.cash+=amount; this.save.lifetimeCash+=amount;this.operations.onCrush(this.vehicle,this.lastPerfect); }

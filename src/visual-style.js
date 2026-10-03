@@ -13,4 +13,4 @@ const remap={
 export const styleColor=color=>remap[color.toLowerCase()]??color;
 const vehicleColors=['#FF4D5A','#3A86FF','#FF922B','#A663FF','#17C9AD','#FFD23F','#F450AD','#4D96FF','#7CD35B'];
 const ids=['veh_rustcompact','veh_sedan','veh_pickup','veh_van','veh_boxtruck','veh_schoolbus','veh_servicevan','veh_flatbed','veh_surplus'];
-export const vehicleColor=def=>vehicleColors[Math.max(0,ids.indexOf(def.id))%vehicleColors.length];
+export const vehicleColor=def=>def.specialColor??vehicleColors[Math.max(0,ids.indexOf(def.id))%vehicleColors.length];

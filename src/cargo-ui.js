@@ -1,4 +1,4 @@
-import {OPERATIONS} from './operations.js?v=0.7.0';
+import {OPERATIONS} from './operations.js?v=0.8.0';
 export function installCargoUI({save,model,near,toast}){
  const panel=document.createElement('section');panel.id='cargo-panel';panel.hidden=true;panel.innerHTML='<strong></strong><button></button>';document.body.append(panel);
  const title=panel.querySelector('strong'),button=panel.querySelector('button');let action='';
