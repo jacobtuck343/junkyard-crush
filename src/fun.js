@@ -1,10 +1,12 @@
-import {DECORATIONS,DISPLAY_SPOTS,CRANE} from './fun-content.js?v=0.8.0';
+import {placementError} from './decor-layout.js?v=0.8.1';
+import {DECORATIONS,DISPLAY_SPOTS,CRANE} from './fun-content.js?v=0.8.1';
 export class YardFun{
  constructor(model){this.model=model;this.save=model.save;}
  commit(name,data={}){this.model.event(name,data);this.model.persist();}
  salvage(){const m=this.model,s=this.save;if(m.progressionDisabled||!['towing','ready'].includes(m.state)||s.salvagedDelivery===s.crushed)return false;const amount=Math.max(12,Math.round(m.vehicle.value*.3));s.salvagedDelivery=s.crushed;s.cash+=amount;s.lifetimeCash+=amount;s.salvagedParts++;this.commit('part_salvaged',{amount});m.emit('salvaged',{amount});return true;}
  buy(id){const s=this.save,d=DECORATIONS.find(d=>d.id===id);if(this.model.progressionDisabled||!d||s.decorations.includes(id)||s.cash<d.cost)return false;s.cash-=d.cost;s.decorations.push(id);this.commit('decoration_bought',{id,cost:d.cost});return true;}
  place(id,slot){const s=this.save;if(this.model.progressionDisabled||!Number.isInteger(slot)||slot<0||slot>=DISPLAY_SPOTS.length||(slot>=6&&!s.landOwned)||(id&&!s.decorations.includes(id)))return false;if(id)s.decorSlots=s.decorSlots.map(value=>value===id?'':value);s.decorSlots[slot]=id;this.commit('decoration_placed',{id,slot});return true;}
+ placeAt(id,p){const s=this.save;if(this.model.progressionDisabled||!s.decorations.includes(id)||placementError(s,id,p))return false;s.decorSlots=s.decorSlots.map(v=>v===id?'':v);s.decorPlacements??={};s.decorPlacements[id]={x:p.x,z:p.z,rotation:p.rotation%(Math.PI*2)};this.commit('decoration_placed',{id});return true;}
  buyCrane(){const s=this.save;if(this.model.progressionDisabled||!s.balerOwned||s.craneOwned||s.cash<CRANE.cost)return false;s.cash-=CRANE.cost;s.craneOwned=true;this.commit('crane_built');return true;}
  scoop(){const s=this.save,m=this.model;if(m.progressionDisabled||m.state!=='waiting'||!s.craneOwned||s.craneCargo||s.craneTimer||s.scrapLoads<1)return false;s.craneCargo=Math.min(3,s.scrapLoads);s.scrapLoads-=s.craneCargo;s.craneTimer=2;s.craneMode='pickup';this.commit('crane_scooped',{loads:s.craneCargo});return true;}
  drop(){const s=this.save;if(this.model.progressionDisabled||this.model.state!=='waiting'||!s.craneCargo||s.craneTimer||s.balerRemaining||s.readyBales.length>=60)return false;s.craneMode='drop';s.craneTimer=2;this.commit('crane_drop_started');return true;}

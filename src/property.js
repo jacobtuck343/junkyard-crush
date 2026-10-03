@@ -1,4 +1,4 @@
-import {CONFIG,COUNTY_VEHICLES,costFor,chooseVehicle} from './config.js?v=0.8.0';
+import {CONFIG,COUNTY_VEHICLES,costFor,chooseVehicle} from './config.js?v=0.8.1';
 
 export const SALE_TARGET=100000;
 export function valuation(save){

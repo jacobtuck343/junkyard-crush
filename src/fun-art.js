@@ -1,6 +1,7 @@
-import {batchStatic} from './static-batches.js?v=0.8.0';
-import * as THREE from '../vendor/three.module.js?v=0.8.0';
-import {DECORATIONS,DISPLAY_SPOTS,CRANE} from './fun-content.js?v=0.8.0';
+import {decorLayout} from './decor-layout.js?v=0.8.1';
+import {batchStatic} from './static-batches.js?v=0.8.1';
+import * as THREE from '../vendor/three.module.js?v=0.8.1';
+import {DECORATIONS,DISPLAY_SPOTS,CRANE} from './fun-content.js?v=0.8.1';
 // All sculpture parts reuse the scene's box/cylinder geometry and cached materials.
 export function sculpture(f,shape,color){
  const g=new THREE.Group(),ink='#2B1D0E',white='#FFFFFF',yellow='#FFD23F';
@@ -37,7 +38,7 @@ export function installFunArt(yard){
  const controlPad=new THREE.Group();root.add(controlPad);yard.box(1.5,.04,1.5,'#FFD23F',controlPad,CRANE.x,.09,CRANE.z);const label=yard.text('MAGNET',1.4,'#2B1D0E');label.rotation.x=-Math.PI/2;label.position.set(CRANE.x,.12,CRANE.z);controlPad.add(label);
  const displays=new THREE.Group();root.add(displays);const center=new THREE.Vector3(CRANE.x,3.7,-5),end=new THREE.Vector3(),direction=new THREE.Vector3();
  return{burst(def){if(!def.special)return;if(burstShape!==def.specialShape){confetti.clear();burstShape=def.specialShape;for(let i=0;i<3;i++){const piece=sculpture(yard,def.specialShape,def.specialColor);piece.scale.setScalar(.25);confetti.add(piece);}}burstLife=yard.settings.reduced?.35:1;},update(model,dt=0){
- burstLife=Math.max(0,burstLife-dt);confetti.visible=burstLife>0;confetti.children.forEach((p,i)=>{const age=1-burstLife;p.position.set((i-1)*age*3,.8+Math.sin(age*Math.PI)*2,-3.7+age*(i%2?2:-2));p.rotation.set(age*3,age*4,age);});const s=model.save,key=s.decorSlots.join('|')+'|'+s.landOwned;if(signature!==key){signature=key;displays.traverse(m=>{if(m.isInstancedMesh)m.dispose();});displays.clear();s.decorSlots.forEach((id,i)=>{const d=DECORATIONS.find(x=>x.id===id);if(!d||(i>=6&&!s.landOwned))return;const pos=DISPLAY_SPOTS[i],g=sculpture(yard,d.shape,d.color);g.scale.setScalar(.8);g.position.set(pos.x,0,pos.z);displays.add(g);yard.box(1.8,.12,1.8,'#8D99A6',g,0,0,0);batchStatic(g,[yard.boxGeometry,yard.cylinderGeometry]);});batchStatic(displays,[yard.boxGeometry,yard.cylinderGeometry]);}
+ burstLife=Math.max(0,burstLife-dt);confetti.visible=burstLife>0;confetti.children.forEach((p,i)=>{const age=1-burstLife;p.position.set((i-1)*age*3,.8+Math.sin(age*Math.PI)*2,-3.7+age*(i%2?2:-2));p.rotation.set(age*3,age*4,age);});const s=model.save,key=JSON.stringify(decorLayout(s))+'|'+s.landOwned;if(signature!==key){signature=key;displays.traverse(m=>{if(m.isInstancedMesh)m.dispose();});displays.clear();Object.entries(decorLayout(s)).forEach(([id,pos])=>{const d=DECORATIONS.find(x=>x.id===id);if(!d||(pos.x>8&&!s.landOwned))return;const g=sculpture(yard,d.shape,d.color);g.scale.setScalar(.8);g.position.set(pos.x,0,pos.z);g.rotation.y=pos.rotation;g.userData.decorId=id;displays.add(g);yard.box(1.8,.12,1.8,'#8D99A6',g,0,0,0);batchStatic(g,[yard.boxGeometry,yard.cylinderGeometry]);});batchStatic(displays,[yard.boxGeometry,yard.cylinderGeometry]);}
  controlPad.visible=crane.visible=arm.visible=rope.visible=magnet.visible=s.craneOwned;if(!s.craneOwned)return;
  const t=1-s.craneTimer/2;let x=13,z=-2;
  if(s.craneMode==='pickup'){x=3+(13-3)*t;z=1+(-2-1)*t;}else if(s.craneMode==='drop'){x=13;z=-2;}

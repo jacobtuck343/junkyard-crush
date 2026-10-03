@@ -1,8 +1,8 @@
-import {SPECIALS,DECORATIONS} from './fun-content.js?v=0.8.0';
-import { CONFIG, ALL_VEHICLES, clamp } from './config.js?v=0.8.0';
+import {SPECIALS,DECORATIONS} from './fun-content.js?v=0.8.1';
+import { CONFIG, ALL_VEHICLES, clamp } from './config.js?v=0.8.1';
 export const SAVE_KEY = 'junkyard-crush.save.v6';
 export const LEGACY_SAVE_KEY = 'junkyard-crush.save';
-export function freshSave() { return { version: 6, decorations:[], decorSlots:Array(8).fill(''), specialDiscoveries:[], salvagedDelivery:-1, salvagedParts:0, craneOwned:false, craneCargo:0, craneTimer:0, craneMode:'hold', carriedScrap:0, carriedBaleValue:0, balerFeed:0, readyBales:[], workerPaused:false, yardId:'rustbucket', yardSales:0, legacyBonus:0, soldYardValue:0, surplusPermit:false, countyCollectionClaimed:false, cash: 0, balerOwned:false, workerOwned:false, depotOwned:false, scrapLoads:0, balerRemaining:0, balerPayout:0, balesSold:0, jobIndex:0, jobActive:false, jobProgress:0, jobsCompleted:0, lastSeen:0, collectionCounts:{}, rareDiscoveries:[], collectionClaimed:false, rareCollectionClaimed:false, speedLevel: 0, powerLevel:0, handlingLevel:0, valueLevel:0, zoneLevel:0, magnetLevel:0, landOwned:false, discoveries:[], crushed: 0, perfects: 0, lifetimeCash: 0, settings: { master: .7, music: .2, sfx: .8, shake: .55, reduced: false }, firsts: [] }; }
+export function freshSave() { return { version: 6, decorations:[], decorPlacements:{}, decorSlots:Array(8).fill(''), specialDiscoveries:[], salvagedDelivery:-1, salvagedParts:0, craneOwned:false, craneCargo:0, craneTimer:0, craneMode:'hold', carriedScrap:0, carriedBaleValue:0, balerFeed:0, readyBales:[], workerPaused:false, yardId:'rustbucket', yardSales:0, legacyBonus:0, soldYardValue:0, surplusPermit:false, countyCollectionClaimed:false, cash: 0, balerOwned:false, workerOwned:false, depotOwned:false, scrapLoads:0, balerRemaining:0, balerPayout:0, balesSold:0, jobIndex:0, jobActive:false, jobProgress:0, jobsCompleted:0, lastSeen:0, collectionCounts:{}, rareDiscoveries:[], collectionClaimed:false, rareCollectionClaimed:false, speedLevel: 0, powerLevel:0, handlingLevel:0, valueLevel:0, zoneLevel:0, magnetLevel:0, landOwned:false, discoveries:[], crushed: 0, perfects: 0, lifetimeCash: 0, settings: { master: .7, music: .2, sfx: .8, shake: .55, reduced: false }, firsts: [] }; }
 export function normalizeSave(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Invalid save');
   if (![0,1,2,3,4,5,6].includes(raw.version)) throw new Error('Unsupported save version');
@@ -11,6 +11,7 @@ export function normalizeSave(raw) {
   save.decorations=Array.isArray(raw.decorations)?[...new Set(raw.decorations.filter(id=>decorIds.has(id)))]:[];
   save.specialDiscoveries=Array.isArray(raw.specialDiscoveries)?[...new Set(raw.specialDiscoveries.filter(id=>specialIds.has(id)))]:[];
   const placed=new Set();save.decorSlots=Array.from({length:8},(_,i)=>{const id=raw.decorSlots?.[i];if(!save.decorations.includes(id)||placed.has(id))return '';placed.add(id);return id;});
+  save.decorPlacements={};for(const id of save.decorations){const p=raw.decorPlacements?.[id];if(p&&[p.x,p.z,p.rotation].every(Number.isFinite)&&p.x>=-7.8&&p.x<=16&&p.z>=-7.5&&p.z<=8)save.decorPlacements[id]={x:p.x,z:p.z,rotation:p.rotation%(Math.PI*2)};}
   save.salvagedDelivery=Number.isSafeInteger(raw.salvagedDelivery)&&raw.salvagedDelivery>=0?raw.salvagedDelivery:-1;
   save.salvagedParts=Number.isSafeInteger(raw.salvagedParts)&&raw.salvagedParts>=0?raw.salvagedParts:0;
   save.craneOwned=raw.craneOwned===true;save.craneCargo=raw.craneCargo??0;save.craneTimer=raw.craneTimer??0;save.craneMode=raw.craneMode??'hold';

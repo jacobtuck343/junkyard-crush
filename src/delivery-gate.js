@@ -1,4 +1,4 @@
-import {chooseVehicle} from './config.js?v=0.8.0';
+import {chooseVehicle} from './config.js?v=0.8.1';
 export const GATE={x:-11.4,z:3.5,spacing:5.6,seconds:.4,openingMinZ:1,openingMaxZ:6};
 // Forecast the actual delivery selector without advancing player progress.
 export function forecastDeliveries(save,current,count=4){

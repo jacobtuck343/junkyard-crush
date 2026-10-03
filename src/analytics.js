@@ -1,4 +1,4 @@
-import { CONFIG } from './config.js?v=0.8.0';
+import { CONFIG } from './config.js?v=0.8.1';
 export class Analytics {
   constructor(sink = () => {}) { this.sink = sink; this.events = []; this.time = 0; this.sessionId = globalThis.crypto?.randomUUID?.() ?? String(Date.now()); this.milestones = new Set(); }
   emit(name, data = {}) {
