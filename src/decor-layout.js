@@ -1,4 +1,4 @@
-import {DISPLAY_SPOTS} from './fun-content.js?v=0.8.1';
+import {DISPLAY_SPOTS} from './fun-content.js?v=0.9.0';
 export function decorLayout(save){return {...Object.fromEntries(save.decorSlots.map((id,i)=>[id,{...DISPLAY_SPOTS[i],rotation:0}]).filter(([id])=>id)),...save.decorPlacements};}
 // Reserve the gate, machinery, workshop and a cross-yard hauling corridor.
 export function placementError(save,id,p){

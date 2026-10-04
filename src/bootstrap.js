@@ -1,4 +1,4 @@
-import {initializePlatform,setPlatform} from './platform.js?v=0.8.1';
+import {initializePlatform,setPlatform} from './platform.js?v=0.9.0';
 const loading=document.getElementById('loading');
 async function loadSDK(){
   if(window.CrazyGames?.SDK)return window.CrazyGames.SDK;
@@ -10,6 +10,6 @@ try{
   let storage;try{storage=localStorage;}catch{}
   const adapter=await initializePlatform({enabled:document.querySelector('meta[name="game-platform"]')?.content==='crazygames',loadSDK,localStorage:storage});
   setPlatform(adapter);adapter.loadingStart();
-  await import('./main.js?v=0.8.1');adapter.loadingStop();
+  await import('./main.js?v=0.9.0');adapter.loadingStop();
 }catch(error){document.getElementById('fatal').hidden=false;document.getElementById('fatal-detail').textContent=error.message;console.error(error);}
 finally{loading.hidden=true;}

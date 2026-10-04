@@ -1,12 +1,13 @@
-import {YardFun} from './fun.js?v=0.8.1';
-import { CONFIG, clamp, pressDuration, perfectBounds, rewardFor, costFor, capacityFor, canHandle, canCrush, chooseVehicle } from './config.js?v=0.8.1';
-import {YardOperations} from './operations.js?v=0.8.1';
+import {TownBusinesses} from './business.js?v=0.9.0';
+import {YardFun} from './fun.js?v=0.9.0';
+import { CONFIG, clamp, pressDuration, perfectBounds, rewardFor, costFor, capacityFor, canHandle, canCrush, chooseVehicle } from './config.js?v=0.9.0';
+import {YardOperations} from './operations.js?v=0.9.0';
 export class GameModel {
   constructor(save, analytics, persist = () => {}, emit = () => {}) {
     this.save = save; this.analytics = analytics; this.persist = persist; this.emit = emit;
     this.state = 'waiting'; this.pressure = 0; this.timer = 0; this.vehicle = chooseVehicle(save);this.seenGates=new Set();
     this.pendingReward = 0; this.progressionDisabled = false;
-    this.fun=new YardFun(this);this.operations=new YardOperations(save,analytics,persist,emit);
+    this.business=new TownBusinesses(this);this.fun=new YardFun(this);this.operations=new YardOperations(save,analytics,persist,emit);
   }
   event(name, data={}) { this.analytics.emit(name,{ speedLevel:this.save.speedLevel, cash:this.save.cash, vehicleId:this.vehicle.id,...data }); this.emit(name,data); }
   first(name) { if (!this.save.firsts.includes(name)) { this.save.firsts.push(name); this.event(name); } }
@@ -16,7 +17,7 @@ export class GameModel {
   announce(){if(this.vehicle.special){this.event('silly_delivery',{special:this.vehicle.special});this.emit('silly',{name:this.vehicle.name});}if(this.vehicle.rarity==='Rare'){this.first('first_rare_vehicle');this.event('rare_delivery');this.emit('rare');this.persist();}}
   refreshDelivery(){if(this.state!=='waiting')return;const next=chooseVehicle(this.save);if(next.id!==this.vehicle.id||next.rarity!==this.vehicle.rarity){this.vehicle=next;this.emit('spawn');this.announce();}}
   tick(dt, held) {
-    if(!this.progressionDisabled){this.fun.tick(dt);this.operations.tick(dt);}
+    if(!this.progressionDisabled){this.business.tick(dt);this.fun.tick(dt);this.operations.tick(dt);}
     if (this.state === 'ready' && held) { this.state='pressing'; this.emit('press'); }
     if (this.state === 'pressing') {
       if (!held) this.finish();

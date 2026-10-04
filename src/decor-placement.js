@@ -1,6 +1,6 @@
-import * as THREE from '../vendor/three.module.js?v=0.8.1';
-import {sculpture} from './fun-art.js?v=0.8.1';
-import {decorLayout,placementError} from './decor-layout.js?v=0.8.1';
+import * as THREE from '../vendor/three.module.js?v=0.9.0';
+import {sculpture} from './fun-art.js?v=0.9.0';
+import {decorLayout,placementError} from './decor-layout.js?v=0.9.0';
 export function installDecorPlacement({yard,model,save,pause,toast,onDone}){
  const panel=document.createElement('section');panel.id='decor-placement';panel.hidden=true;
  panel.innerHTML='<strong></strong><p>Tap or drag on the ground to move. Rotate, then place.</p><p data-status aria-live="polite"></p><div><button data-rotate="-1" aria-label="Rotate left">↶ 45°</button><button data-rotate="1" aria-label="Rotate right">↷ 45°</button><button data-place>PLACE</button><button data-cancel>CANCEL</button></div>';document.body.append(panel);

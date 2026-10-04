@@ -1,10 +1,10 @@
-import {GATE,forecastDeliveries,gatePose} from './delivery-gate.js?v=0.8.1';
-import * as THREE from '../vendor/three.module.js?v=0.8.1';
-import {CONFIG,crushEffort} from './config.js?v=0.8.1';
-import {OPERATIONS} from './operations.js?v=0.8.1';
-import {PALETTE,styleColor} from './visual-style.js?v=0.8.1';
-import {buildVehicle} from './vehicle-builder.js?v=0.8.1';
-import {batchStatic} from './static-batches.js?v=0.8.1';
+import {GATE,forecastDeliveries,gatePose} from './delivery-gate.js?v=0.9.0';
+import * as THREE from '../vendor/three.module.js?v=0.9.0';
+import {CONFIG,crushEffort} from './config.js?v=0.9.0';
+import {OPERATIONS} from './operations.js?v=0.9.0';
+import {PALETTE,styleColor} from './visual-style.js?v=0.9.0';
+import {buildVehicle} from './vehicle-builder.js?v=0.9.0';
+import {batchStatic} from './static-batches.js?v=0.9.0';
 export class YardScene {
   constructor(canvas, settings) {
     this.settings=settings;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});

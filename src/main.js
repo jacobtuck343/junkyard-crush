@@ -1,24 +1,24 @@
-import {installFunArt} from './fun-art.js?v=0.8.1';
-import {installFunUI} from './fun-ui.js?v=0.8.1';
-import {GATE} from './delivery-gate.js?v=0.8.1';
-import {installCargoUI} from './cargo-ui.js?v=0.8.1';
-import {crushEffort,pressDuration} from './config.js?v=0.8.1';
-import {installWorkshopGuide} from './workshop-guide.js?v=0.8.1';
-import {installSaveTransfer} from './save-transfer-ui.js?v=0.8.1';
-import {platform} from './platform.js?v=0.8.1';
-import {CONFIG,clamp,upgradeCost,perfectBounds,validateContent,costFor,capacityFor,rewardFor,collectionPool} from './config.js?v=0.8.1';
-import {nextGoal,goalCost,nextVehicle} from './progression.js?v=0.8.1';
-import {SaveStore} from './save.js?v=0.8.1';
-import {Analytics} from './analytics.js?v=0.8.1';
-import {GameModel} from './model.js?v=0.8.1';
-import {GameInput} from './input.js?v=0.8.1';
-import {AudioFeedback} from './audio.js?v=0.8.1';
-import {YardScene} from './scene.js?v=0.8.1';
-import {PerformanceMonitor} from './performance.js?v=0.8.1';
-import {installPhase3UI,phase3Goal} from './phase3-ui.js?v=0.8.1';
-import {installPropertyUI} from './property-ui.js?v=0.8.1';
-import {propertyGoal} from './property.js?v=0.8.1';
-import {installCandyUI} from './candy-ui.js?v=0.8.1';
+import {installFunArt} from './fun-art.js?v=0.9.0';
+import {installFunUI} from './fun-ui.js?v=0.9.0';
+import {GATE} from './delivery-gate.js?v=0.9.0';
+import {installCargoUI} from './cargo-ui.js?v=0.9.0';
+import {crushEffort,pressDuration} from './config.js?v=0.9.0';
+import {installWorkshopGuide} from './workshop-guide.js?v=0.9.0';
+import {installSaveTransfer} from './save-transfer-ui.js?v=0.9.0';
+import {platform} from './platform.js?v=0.9.0';
+import {CONFIG,clamp,upgradeCost,perfectBounds,validateContent,costFor,capacityFor,rewardFor,collectionPool} from './config.js?v=0.9.0';
+import {nextGoal,goalCost,nextVehicle} from './progression.js?v=0.9.0';
+import {SaveStore} from './save.js?v=0.9.0';
+import {Analytics} from './analytics.js?v=0.9.0';
+import {GameModel} from './model.js?v=0.9.0';
+import {GameInput} from './input.js?v=0.9.0';
+import {AudioFeedback} from './audio.js?v=0.9.0';
+import {YardScene} from './scene.js?v=0.9.0';
+import {PerformanceMonitor} from './performance.js?v=0.9.0';
+import {installPhase3UI,phase3Goal} from './phase3-ui.js?v=0.9.0';
+import {installPropertyUI} from './property-ui.js?v=0.9.0';
+import {propertyGoal} from './property.js?v=0.9.0';
+import {installCandyUI} from './candy-ui.js?v=0.9.0';
 const $=id=>document.getElementById(id);
 try{boot();}catch(error){$('fatal').hidden=false;$('fatal-detail').textContent='A browser with WebGL 2 support is required. '+error.message;console.error(error);}
 function boot(){
@@ -49,7 +49,8 @@ function boot(){
     if(name==='land'){toast('EAST LOT OPEN! Your yard just got bigger.');audio.cue('upgrade');yard.shake=.2;$('celebration-title').textContent='ROOM TO GROW!';$('celebration-value').textContent='EAST LOT OPEN';celebrationUntil=performance.now()+2400;}
     if(name==='blocked')toast(data.kind==='power'?`CRUSHER POWER ${data.vehicle.resistance} REQUIRED`:`HANDLING CAPACITY ${data.vehicle.weight.toLocaleString()} kg REQUIRED`);
     if(name==='silly')toast('SPECIAL DELIVERY: '+data.name);
-    if(name==='salvaged'){toast('Useful part saved! +$'+data.amount);audio.cue('reward');yard.pop();}
+    if(name==='salvaged'){toast('Building part saved! +1 PART · +$'+data.amount);audio.cue('reward');yard.pop();}
+    if(name==='business_income')toast('Your businesses earned +$'+data.amount+'!');
     if(name==='crane-delivered')toast('Crane delivered '+data.loads+' loads!');
     if(name==='spawn')yard.spawn(model.vehicle,save);
   });
