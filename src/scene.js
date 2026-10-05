@@ -1,16 +1,16 @@
-import {GATE,forecastDeliveries,gatePose} from './delivery-gate.js?v=0.9.0';
-import * as THREE from '../vendor/three.module.js?v=0.9.0';
-import {CONFIG,crushEffort} from './config.js?v=0.9.0';
-import {OPERATIONS} from './operations.js?v=0.9.0';
-import {PALETTE,styleColor} from './visual-style.js?v=0.9.0';
-import {buildVehicle} from './vehicle-builder.js?v=0.9.0';
-import {batchStatic} from './static-batches.js?v=0.9.0';
+import {GATE,forecastDeliveries,gatePose} from './delivery-gate.js?v=0.10.0';
+import * as THREE from '../vendor/three.module.js?v=0.10.0';
+import {CONFIG,crushEffort} from './config.js?v=0.10.0';
+import {OPERATIONS} from './operations.js?v=0.10.0';
+import {PALETTE,styleColor} from './visual-style.js?v=0.10.0';
+import {buildVehicle} from './vehicle-builder.js?v=0.10.0';
+import {batchStatic} from './static-batches.js?v=0.10.0';
 export class YardScene {
   constructor(canvas, settings) {
     this.settings=settings;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
     this.renderer.setPixelRatio(Math.min(devicePixelRatio,settings.reduced?1:1.6));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.setClearColor(PALETTE.fog);this.renderer.outputColorSpace=THREE.SRGBColorSpace;
     this.scene=new THREE.Scene();this.scene.fog=new THREE.Fog(PALETTE.fog,60,120);this.camera=new THREE.PerspectiveCamera(35,1,.1,100);this.target=new THREE.Vector3(0,0,0);this.shake=0;this.time=0;this.popTime=0;
-    this.scene.add(new THREE.HemisphereLight(0xfff5e4,0xbb9c77,2));const sun=new THREE.DirectionalLight(0xffedcb,2.5);sun.position.set(-8,18,8);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-19,right:19,top:19,bottom:-19,near:1,far:50});sun.shadow.normalBias=.035;sun.shadow.bias=-.0003;this.scene.add(sun);
+    this.scene.add(new THREE.HemisphereLight(0xfff5e4,0xbb9c77,2));const sun=new THREE.DirectionalLight(0xffedcb,2.5);sun.position.set(-8,18,8);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-19,right:19,top:19,bottom:-19,near:1,far:50});sun.shadow.normalBias=.035;sun.shadow.bias=-.0003;this.scene.add(sun);this.sun=sun;
     this.materials=new Map();this.boxGeometry=new THREE.BoxGeometry(1,1,1);this.cylinderGeometry=new THREE.CylinderGeometry(1,1,1,6);this.particles=[];this.rewardBits=[];
     this.gateQueue=[];this.gateAdvance=0;this.buildYard();this.buildGate();this.buildCrusher();this.buildOperations();this.buildCounty();this.buildPlayer();this.buildForklift();this.buildCargo();this.vehicle=this.buildVehicle(CONFIG.vehicles[0]);this.scene.add(this.vehicle);this.vehicle.position.set(CONFIG.spawn.x,0,CONFIG.spawn.z);
     const rocks=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),this.mat(PALETTE.shade),8),rockTransform=new THREE.Object3D();rocks.castShadow=true;rocks.receiveShadow=true;
@@ -153,7 +153,7 @@ export class YardScene {
     this.dustTime=Math.max(0,this.dustTime-dt);this.dust.visible=this.dustTime>0;if(this.dust.visible){const age=1-this.dustTime/.7;this.dust.material.opacity=(1-age)*.6;for(let i=0;i<12;i++){const angle=i/12*Math.PI*2;this.dustMatrix.position.set(Math.cos(angle)*(1+age*1.6),.6+age*.9,CONFIG.crusher.z+Math.sin(angle)*(1+age));this.dustMatrix.scale.setScalar(.18+age*.45);this.dustMatrix.updateMatrix();this.dust.setMatrixAt(i,this.dustMatrix.matrix);}this.dust.instanceMatrix.needsUpdate=true;this.dust.computeBoundingSphere();}
     this.time+=dt;const t=this.time;this.upgradeFins.forEach((fin,i)=>fin.visible=i<model.save.speedLevel);
     this.cargoPile.visible=model.save.balerOwned;this.shippingPad.visible=model.save.balerOwned;this.looseChunks.forEach((m,i)=>m.visible=i<model.save.scrapLoads);this.finishedBales.visible=model.save.balerOwned;this.finishedChunks.forEach((m,i)=>m.visible=i<model.save.readyBales.length);this.carriedCargo.visible=!!(model.save.carriedScrap||model.save.carriedBaleValue);this.carriedCargo.scale.setScalar(model.save.carriedBaleValue?1.25:1);
-    const rig=model.save.handlingLevel;this.forklift.visible=rig>0;this.loaderReinforcement.visible=rig>=3;this.forklift.scale.setScalar(1+Math.max(0,rig-1)*.1);this.body.position.y=(rig?.25:0)+(moving&&!rig?Math.abs(Math.sin(t*12))*.06:Math.sin(t*2)*.016);this.legs.forEach((leg,i)=>leg.rotation.x=moving&&!rig?Math.sin(t*12+i*Math.PI)*.5:0);
+    const rig=model.save.handlingLevel;this.forklift.visible=rig>0;this.loaderReinforcement.visible=rig>=3;this.forklift.scale.setScalar(1+Math.max(0,rig-1)*.1);this.body.position.y=(rig&&!this.onFoot?.25:0)+(moving&&(!rig||this.onFoot)?Math.abs(Math.sin(t*12))*.06:Math.sin(t*2)*.016);this.legs.forEach((leg,i)=>leg.rotation.x=moving&&(!rig||this.onFoot)?Math.sin(t*12+i*Math.PI)*.5:0);
     this.extension.visible=model.save.landOwned;this.landSign.visible=!model.save.landOwned;this.landPad.visible=!model.save.landOwned;this.eastFence.forEach(m=>m.visible=!model.save.landOwned);
     this.jobBoard.visible=model.save.landOwned;this.projectMarker.visible=model.save.landOwned;this.baler.visible=model.save.balerOwned;this.worker.visible=model.save.workerOwned;this.depot.visible=model.save.depotOwned;
     this.county.visible=model.save.yardId==='county';
@@ -171,7 +171,7 @@ export class YardScene {
     if(this.rope.visible){const p=this.rope.geometry.attributes.position;p.setXYZ(0,this.player.position.x,.8,this.player.position.z);p.setXYZ(1,this.vehicle.position.x,.5,this.vehicle.position.z);p.needsUpdate=true;this.rope.geometry.computeBoundingSphere();}
     for(const p of this.particles){if(p.life<=0)continue;p.life-=dt;p.v.y-=14*dt;p.mesh.position.addScaledVector(p.v,dt);p.mesh.rotation.x+=dt*4;if(p.mesh.position.y<.1){p.mesh.position.y=.1;p.v.y=Math.abs(p.v.y)*.2;p.v.x*=.8;p.v.z*=.8;}if(p.life<=0)p.mesh.visible=false;}
     for(const p of this.rewardBits){if(p.life<=0)continue;p.life-=dt;p.mesh.position.lerp(this.player.position.clone().add(new THREE.Vector3(0,1+Math.abs(Math.sin(p.life*10))*.35,0)),1-Math.exp(-dt*5));p.mesh.rotation.y+=dt*8;if(p.life<=0)p.mesh.visible=false;}
-    this.shake=Math.max(0,this.shake-dt*.5);const focusX=innerWidth/innerHeight<.85?Math.max(-6,Math.min(model.save.landOwned?5:-4,this.player.position.x*.35-3.5)):model.save.landOwned?Math.min(7,Math.max(-3,this.player.position.x*.55)):Math.min(0,Math.max(-3,this.player.position.x*.45));this.target.x=THREE.MathUtils.damp(this.target.x,focusX,3,dt);this.target.z=THREE.MathUtils.damp(this.target.z,model.save.depotOwned?Math.max(0,(this.player.position.z-5)*.65):0,3,dt);this.camera.position.copy(this.cameraBase).multiplyScalar(model.save.landOwned?1.07:1);this.camera.position.x+=this.target.x;this.camera.position.z+=this.target.z;if(!this.settings.reduced)this.camera.position.x+=Math.sin(t*90)*this.shake*this.settings.shake;this.camera.lookAt(this.target.x,0,this.target.z-.6);this.renderer.render(this.scene,this.camera);
+    this.shake=Math.max(0,this.shake-dt*.5);const focusX=this.exploring?this.player.position.x:innerWidth/innerHeight<.85?Math.max(-6,Math.min(model.save.landOwned?5:-4,this.player.position.x*.35-3.5)):model.save.landOwned?Math.min(7,Math.max(-3,this.player.position.x*.55)):Math.min(0,Math.max(-3,this.player.position.x*.45));this.target.x=THREE.MathUtils.damp(this.target.x,focusX,3,dt);this.target.z=THREE.MathUtils.damp(this.target.z,this.exploring?this.player.position.z:model.save.depotOwned?Math.max(0,(this.player.position.z-5)*.65):0,3,dt);this.camera.position.copy(this.cameraBase).multiplyScalar(this.exploring?.78:model.save.landOwned?1.07:1);this.camera.position.x+=this.target.x;this.camera.position.z+=this.target.z;if(!this.settings.reduced)this.camera.position.x+=Math.sin(t*90)*this.shake*this.settings.shake;this.camera.lookAt(this.target.x,0,this.target.z-.6);const lightX=this.exploring?this.player.position.x:0,lightZ=this.exploring?this.player.position.z:0;this.sun.position.set(-8+lightX,18,8+lightZ);this.sun.target.position.set(lightX,0,lightZ);this.sun.target.updateMatrixWorld();this.renderer.render(this.scene,this.camera);
   }
 }
 

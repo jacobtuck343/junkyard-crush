@@ -1,0 +1,14 @@
+import * as THREE from '../vendor/three.module.js?v=0.10.0';
+import {TOWN_PLOTS,parkVisitorPose} from './world-rules.js?v=0.10.0';
+import {businessPiece} from './business-art.js?v=0.10.0';
+import {installIceCreamArt} from './icecream-art.js?v=0.10.0';
+import {batchStatic} from './static-batches.js?v=0.10.0';
+export function installTownWorld(yard){
+ const root=new THREE.Group(),street=new THREE.Group();root.add(street);yard.scene.add(root);
+ const b=(w,h,d,x,y,z,c='#D9A86A',parent=street)=>yard.box(w,h,d,c,parent,x,y,z);
+ b(4,.12,12,-4,-.01,13);for(const z of [17,39])b(67,.12,4,21.5,-.01,z,'#8D99A6');b(3,.12,24,-10.5,-.01,28,'#8D99A6');
+ const streetSign=yard.text('MAIN STREET ↓',3,'#2B1D0E','#FFD23F');streetSign.position.set(-4,1.8,7.5);street.add(streetSign);b(.12,1.8,.12,-5.2,.9,7.5,'#8D99A6');
+ const plots=TOWN_PLOTS.map(p=>{const g=new THREE.Group(),models=new THREE.Group(),visitors=new THREE.Group();g.position.set(p.x,0,p.z);g.add(models,visitors);root.add(g);b(18,.15,16,0,-.01,0,'#D9A86A',g);b(2.5,.05,19,0,.08,-1.5,'#FFFFFF',g);for(const x of [-8.5,8.5])b(.15,.7,15,x,.4,0,'#FFFFFF',g);b(17,.7,.15,0,.4,7.5,'#FFFFFF',g);for(const x of [-5,5])b(7,.7,.15,x,.4,-7.5,'#FFFFFF',g);for(const x of [-1.6,1.6])b(.2,2,.2,x,1,-7.5,p.color,g);const sign=yard.text(p.kind,5,'#2B1D0E',p.color);sign.position.set(0,2.6,-7.5);sign.rotation.y=0;g.add(sign);for(let i=0;i<6;i++){const v=new THREE.Group();yard.box(.4,.65,.3,['#FF4D5A','#3A86FF','#FFD23F'][i%3],v,0,.6,0);yard.box(.3,.3,.3,'#D9A86A',v,0,1.08,0);visitors.add(v);}batchStatic(g,[yard.boxGeometry,yard.cylinderGeometry]);return{p,g,models,visitors,key:'',ice:p.id==='icecream'?installIceCreamArt(yard,g):null};});
+ batchStatic(street,[yard.boxGeometry,yard.cylinderGeometry]);
+ return{update(model,dt){const s=model.save,pos=yard.player.position;for(const item of plots){const {p,g,models,visitors}=item,biz=s.businesses[p.id];g.visible=Math.hypot(pos.x-p.x,pos.z-p.z)<38;if(!g.visible)continue;const key=JSON.stringify(biz.placements)+'|'+biz.owned;if(key!==item.key){item.key=key;models.traverse(m=>{if(m.isInstancedMesh)m.dispose();});models.clear();p.pieces.forEach((piece,i)=>{const q=biz.placements[piece.id]||(!biz.owned&&piece.required?{x:i%2?4:-4,z:i===2?3:-3,rotation:0}:null);if(!q)return;const mesh=businessPiece(yard,piece.shape,biz.owned?p.color:'#8D99A6');mesh.position.set(q.x,0,q.z);mesh.rotation.y=q.rotation;batchStatic(mesh,[yard.boxGeometry,yard.cylinderGeometry]);models.add(mesh);});}visitors.visible=biz.open&&!item.ice;visitors.children.forEach((v,i)=>{const q=parkVisitorPose(yard.time,i);v.position.set(q.x,0,q.z);v.rotation.y=q.heading;});item.ice?.update(biz,dt,biz.open,s.settings.reduced);if(biz.open&&!s.settings.reduced)models.traverse(m=>{if(m.userData.spin)m.rotation.y+=dt*.8;if(m.userData.sway)m.rotation.z=Math.sin(yard.time*2)*.05;});}}};
+}

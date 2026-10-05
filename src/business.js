@@ -1,5 +1,5 @@
-import {ICECREAM,iceCreamPrice,serveIceCream} from './icecream.js?v=0.9.0';
-import {BUSINESSES,businessById,businessRate,businessPlacementError} from './business-content.js?v=0.9.0';
+import {ICECREAM,iceCreamPrice,serveIceCream} from './icecream.js?v=0.10.0';
+import {BUSINESSES,businessById,businessRate,businessPlacementError} from './business-content.js?v=0.10.0';
 export class TownBusinesses{
  constructor(model){this.model=model;this.save=model.save;}
  unlocked(id){const i=BUSINESSES.findIndex(b=>b.id===id);return i===0||(i>0&&this.save.businesses[BUSINESSES[i-1].id].open);}

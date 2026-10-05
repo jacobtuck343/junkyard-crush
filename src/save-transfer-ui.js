@@ -1,6 +1,6 @@
-import {normalizeSave,SAVE_KEY} from './save.js?v=0.9.0';
-import {CONFIG} from './config.js?v=0.9.0';
-import {encodeSave,decodeSave,restoreTransferredSave} from './save-transfer.js?v=0.9.0';
+import {normalizeSave,SAVE_KEY} from './save.js?v=0.10.0';
+import {CONFIG} from './config.js?v=0.10.0';
+import {encodeSave,decodeSave,restoreTransferredSave} from './save-transfer.js?v=0.10.0';
 export function installSaveTransfer({save,store,settle,reload}){
  const settings=document.getElementById('settings'),button=document.createElement('button');button.className='primary';button.textContent='MOVE / BACK UP SAVE';settings.insertBefore(button,document.getElementById('resume'));
  const version=document.createElement('p');version.className='settings-note';version.textContent='BUILD '+CONFIG.gameVersion+' · Saves stay in this browser';settings.append(version);

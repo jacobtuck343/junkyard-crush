@@ -1,24 +1,25 @@
-import {installFunArt} from './fun-art.js?v=0.9.0';
-import {installFunUI} from './fun-ui.js?v=0.9.0';
-import {GATE} from './delivery-gate.js?v=0.9.0';
-import {installCargoUI} from './cargo-ui.js?v=0.9.0';
-import {crushEffort,pressDuration} from './config.js?v=0.9.0';
-import {installWorkshopGuide} from './workshop-guide.js?v=0.9.0';
-import {installSaveTransfer} from './save-transfer-ui.js?v=0.9.0';
-import {platform} from './platform.js?v=0.9.0';
-import {CONFIG,clamp,upgradeCost,perfectBounds,validateContent,costFor,capacityFor,rewardFor,collectionPool} from './config.js?v=0.9.0';
-import {nextGoal,goalCost,nextVehicle} from './progression.js?v=0.9.0';
-import {SaveStore} from './save.js?v=0.9.0';
-import {Analytics} from './analytics.js?v=0.9.0';
-import {GameModel} from './model.js?v=0.9.0';
-import {GameInput} from './input.js?v=0.9.0';
-import {AudioFeedback} from './audio.js?v=0.9.0';
-import {YardScene} from './scene.js?v=0.9.0';
-import {PerformanceMonitor} from './performance.js?v=0.9.0';
-import {installPhase3UI,phase3Goal} from './phase3-ui.js?v=0.9.0';
-import {installPropertyUI} from './property-ui.js?v=0.9.0';
-import {propertyGoal} from './property.js?v=0.9.0';
-import {installCandyUI} from './candy-ui.js?v=0.9.0';
+import {installWalkWorld} from './walk-world.js?v=0.10.0';
+import {installFunArt} from './fun-art.js?v=0.10.0';
+import {installFunUI} from './fun-ui.js?v=0.10.0';
+import {GATE} from './delivery-gate.js?v=0.10.0';
+import {installCargoUI} from './cargo-ui.js?v=0.10.0';
+import {crushEffort,pressDuration} from './config.js?v=0.10.0';
+import {installWorkshopGuide} from './workshop-guide.js?v=0.10.0';
+import {installSaveTransfer} from './save-transfer-ui.js?v=0.10.0';
+import {platform} from './platform.js?v=0.10.0';
+import {CONFIG,clamp,upgradeCost,perfectBounds,validateContent,costFor,capacityFor,rewardFor,collectionPool} from './config.js?v=0.10.0';
+import {nextGoal,goalCost,nextVehicle} from './progression.js?v=0.10.0';
+import {SaveStore} from './save.js?v=0.10.0';
+import {Analytics} from './analytics.js?v=0.10.0';
+import {GameModel} from './model.js?v=0.10.0';
+import {GameInput} from './input.js?v=0.10.0';
+import {AudioFeedback} from './audio.js?v=0.10.0';
+import {YardScene} from './scene.js?v=0.10.0';
+import {PerformanceMonitor} from './performance.js?v=0.10.0';
+import {installPhase3UI,phase3Goal} from './phase3-ui.js?v=0.10.0';
+import {installPropertyUI} from './property-ui.js?v=0.10.0';
+import {propertyGoal} from './property.js?v=0.10.0';
+import {installCandyUI} from './candy-ui.js?v=0.10.0';
 const $=id=>document.getElementById(id);
 try{boot();}catch(error){$('fatal').hidden=false;$('fatal-detail').textContent='A browser with WebGL 2 support is required. '+error.message;console.error(error);}
 function boot(){
@@ -29,7 +30,7 @@ function boot(){
   const audio=new AudioFeedback(save.settings),yard=new YardScene($('game'),save.settings),input=new GameInput($('game'),$('press-button'),$('joystick'));
   let toastUntil=0,celebrationUntil=0,cashDeltaUntil=0,displayCash=save.cash,paused=false,upgradeDwell=0,upgradeArmed=true,moved=false,strainClock=0,musicClock=0,sessionEnded=false;
   let towDirection={x:0,z:1},previous=performance.now();const velocity={x:0,z:0};
-  let replacingSave=false;const persist=()=>{if(replacingSave)return;save.lastSeen=Date.now();if(!store.save(save))toast(store.warning);};
+  let walk=null,replacingSave=false;const persist=()=>{if(replacingSave)return;walk?.snapshot();save.lastSeen=Date.now();if(!store.save(save))toast(store.warning);};
   const model=new GameModel(save,analytics,persist,(name,data={})=>{
     if(['hook','dock','press','reward','upgrade'].includes(name))audio.cue(name);
     if(name==='hook'){yard.pop();yard.advanceGateQueue(save,model.vehicle);toast('Picked up! The line is moving. Bring this wreck to the press.');}
@@ -44,7 +45,7 @@ function boot(){
     if(name==='bale'){$('cash-delta').textContent='BALE +$'+data.amount;cashDeltaUntil=performance.now()+1800;audio.cue('reward');}
     if(name==='bale-ready'){toast('Bale ready! Pick it up at the baler and take it to shipping.');audio.cue('upgrade');}
     if(name==='discovery'){toast(`DISCOVERED: ${data.name} · ${data.count}/${collectionPool(save).length} wrecks`);audio.cue('upgrade');}
-    if(name==='yard-changed'){yard.player.position.set(CONFIG.playerStart.x,0,CONFIG.playerStart.z);input.clear();velocity.x=velocity.z=0;displayCash=save.cash;audio.cue('upgrade');$('celebration-title').textContent='YOUR NEXT CHAPTER';$('celebration-value').textContent='COUNTY YARD';celebrationUntil=performance.now()+3500;}
+    if(name==='yard-changed'){walk?.reset();yard.player.position.set(CONFIG.playerStart.x,0,CONFIG.playerStart.z);input.clear();velocity.x=velocity.z=0;displayCash=save.cash;audio.cue('upgrade');$('celebration-title').textContent='YOUR NEXT CHAPTER';$('celebration-value').textContent='COUNTY YARD';celebrationUntil=performance.now()+3500;}
     if(name==='rare'){toast('◆ RARE SALVAGE! This wreck pays 2.5×.');audio.cue('upgrade');}
     if(name==='land'){toast('EAST LOT OPEN! Your yard just got bigger.');audio.cue('upgrade');yard.shake=.2;$('celebration-title').textContent='ROOM TO GROW!';$('celebration-value').textContent='EAST LOT OPEN';celebrationUntil=performance.now()+2400;}
     if(name==='blocked')toast(data.kind==='power'?`CRUSHER POWER ${data.vehicle.resistance} REQUIRED`:`HANDLING CAPACITY ${data.vehicle.weight.toLocaleString()} kg REQUIRED`);
@@ -74,6 +75,7 @@ function boot(){
   const yardStatus=document.createElement('div');yardStatus.id='yard-status';document.body.append(yardStatus);yardStatus.append($('delivery-card'),$('operations-hint'));
   const property=installPropertyUI({save,model,store,pause,toast});
   const funArt=installFunArt(yard),funUI=installFunUI({model,save,near,pause,toast,yard});
+  walk=installWalkWorld({yard,model,save,input,stop:()=>{velocity.x=velocity.z=0;input.clear();},toast,visit:id=>funUI.openBusiness(id)});
   const candy=installCandyUI({save,pause});let workshopPinned=false,workshopDismissed=false;
   const upgradesButton=document.createElement('button');upgradesButton.id='upgrades-open';upgradesButton.textContent='UPGRADES';document.body.append(upgradesButton);upgradesButton.onclick=()=>{workshopPinned=true;workshopDismissed=false;};
   const workshopClose=document.createElement('button');workshopClose.textContent='×';workshopClose.setAttribute('aria-label','Close upgrades');document.querySelector('.workshop-heading').append(workshopClose);workshopClose.onclick=()=>{workshopPinned=false;workshopDismissed=true;$('game').focus();};
@@ -89,15 +91,15 @@ function boot(){
     if(moving&&!moved){moved=true;model.first('movement_started');}
     // Screen-relative movement follows the fixed camera's ground-plane axes.
     const dx=movement.x*.826+movement.y*.563,dz=-movement.x*.563+movement.y*.826;
-    const speed=CONFIG.speed*(model.state==='towing'?1-clamp(model.vehicle.weight/4000,0,.35):1);
+    const speed=(walk.isFoot()?4.5:CONFIG.speed)*(model.state==='towing'?1-clamp(model.vehicle.weight/4000,0,.35):1);
     velocity.x+=(dx*speed-velocity.x)*(1-Math.exp(-CONFIG.acceleration*dt));velocity.z+=(dz*speed-velocity.z)*(1-Math.exp(-CONFIG.acceleration*dt));
-    const player=yard.player.position;const nextX=clamp(player.x+velocity.x*dt,CONFIG.bounds.minX,save.landOwned?CONFIG.land.expandedMaxX:CONFIG.bounds.maxX),nextZ=clamp(player.z+velocity.z*dt,CONFIG.bounds.minZ,save.depotOwned?13.8:CONFIG.bounds.maxZ);
+    const player=yard.player.position;const nextX=player.x+velocity.x*dt,nextZ=player.z+velocity.z*dt;
     // Keep the mechanic outside the bed and the office while permitting a generous delivery zone.
-    const blocked=(x,z)=>(x<-9&&(z<GATE.openingMinZ||z>GATE.openingMaxZ))||(Math.abs(x)<2.1&&z<-2.2)||(x<-5.1&&z<-4)||(save.balerOwned&&Math.abs(x-13)<1.6&&Math.abs(z+2)<1.2);
+    const blocked=(x,z)=>!walk.allowed(x,z);
     if(!blocked(nextX,player.z))player.x=nextX;
     if(!blocked(player.x,nextZ))player.z=nextZ;
     if(moving){yard.player.rotation.y=Math.atan2(dx,dz);towDirection={x:-dx,z:-dz};}
-    if(model.state==='waiting'&&Math.hypot(player.x-yard.vehicle.position.x,player.z-yard.vehicle.position.z)<CONFIG.attachRadius)model.attach();
+    if(walk.canTow()&&model.state==='waiting'&&Math.hypot(player.x-yard.vehicle.position.x,player.z-yard.vehicle.position.z)<CONFIG.attachRadius)model.attach();
     if(model.state==='towing'){
       const follow=1-Math.exp(-CONFIG.towSpring*dt),offset=save.handlingLevel>0?-2.1:1.7,targetX=player.x+towDirection.x*offset,targetZ=player.z+towDirection.z*offset;
       yard.vehicle.position.x+=(targetX-yard.vehicle.position.x)*follow;yard.vehicle.position.z+=(targetZ-yard.vehicle.position.z)*follow;
@@ -109,7 +111,7 @@ function boot(){
     if(onPad&&upgradeArmed&&save.cash>=upgradeCost(save.speedLevel)&&save.speedLevel===0){upgradeDwell+=dt;if(upgradeDwell>.85&&model.buyUpgrade()){upgradeArmed=false;upgradeDwell=0;}}else if(!onPad){upgradeDwell=0;upgradeArmed=true;}
     strainClock+=dt;if(strainClock>.18){strainClock=0;if(model.state==='pressing')audio.strain(model.pressure);}
     musicClock+=dt;if(musicClock>5){musicClock=0;if(model.state!=='pressing'&&model.state!=='impact')audio.music();}
-    funArt.update(model,dt);const renderStart=performance.now();yard.update(dt,model,moving);
+    const renderStart=performance.now();walk.update(dt);funArt.update(model,dt);yard.update(dt,model,moving);
     perf.record(raw,{cpuMs:performance.now()-renderStart,calls:yard.renderer.info.render.calls,triangles:yard.renderer.info.render.triangles,heap:performance.memory?.usedJSHeapSize??null,state:model.state});
     displayCash+=(save.cash-displayCash)*(1-Math.exp(-dt*10));$('cash').textContent='$'+Math.round(displayCash).toLocaleString();
     $('cash-delta').style.opacity=now<cashDeltaUntil?'1':'0';$('toast').classList.toggle('show',now<toastUntil);$('celebration').classList.toggle('show',now<celebrationUntil);
@@ -140,7 +142,7 @@ function boot(){
     if(save.carriedBaleValue){$('objective').textContent='Ship your finished bale.';$('objective-detail').textContent='Take it to the yellow SHIPPING pad in the east lot for payment.';}
     const effort=crushEffort(model.vehicle,save.powerLevel);$('gauge-title').textContent=model.pressure>=zone.start&&model.pressure<=zone.end?'RELEASE NOW!':model.state==='pressing'?(effort>.8?'HEAVY LOAD · PRESS STRAINING':effort>.55?'TOUGH WRECK · KEEP PRESSING':'CRUSHING · KEEP PRESSING'):`HOLD TO PRESS · ${pressDuration(save.speedLevel,model.vehicle.weight).toFixed(1)}s FULL STROKE`;
     $('gauge').classList.toggle('heavy-load',effort>.8);
-    funUI.update();phase3.update();cargo.update();property.update();candy.update();workshopGuide.update(onPad,showWorkshop||document.body.classList.contains('operations-open')||ready||model.state==='impact'||!!save.carriedScrap||!!save.carriedBaleValue);
+    walk.describe();funUI.update();phase3.update();cargo.update();property.update();candy.update();workshopGuide.update(onPad,showWorkshop||document.body.classList.contains('operations-open')||ready||model.state==='impact'||!!save.carriedScrap||!!save.carriedBaleValue);
   }
   function positionLabel(id,p){const el=$(id),margin=el.offsetWidth/2+8,minTop=id==='machine-label'?225:innerWidth<600?195:150;el.style.left=clamp(p.x,margin,innerWidth-margin)+'px';el.style.top=clamp(p.y,minTop,innerHeight-200)+'px';}
   requestAnimationFrame(frame);

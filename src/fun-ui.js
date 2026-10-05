@@ -1,8 +1,8 @@
-import {installBusinessUI} from './business-ui.js?v=0.9.0';
-import {installDecorPlacement} from './decor-placement.js?v=0.9.0';
-import {decorLayout} from './decor-layout.js?v=0.9.0';
-import {decorationPreviews} from './fun-art.js?v=0.9.0';
-import {SPECIALS,DECORATIONS,DISPLAY_SPOTS,CRANE} from './fun-content.js?v=0.9.0';
+import {installBusinessUI} from './business-ui.js?v=0.10.0';
+import {installDecorPlacement} from './decor-placement.js?v=0.10.0';
+import {decorLayout} from './decor-layout.js?v=0.10.0';
+import {decorationPreviews} from './fun-art.js?v=0.10.0';
+import {SPECIALS,DECORATIONS,DISPLAY_SPOTS,CRANE} from './fun-content.js?v=0.10.0';
 export function installFunUI({model,save,near,pause,toast,yard}){
  const open=document.createElement('button');open.id='fun-open';open.textContent='FUN YARD';document.body.append(open);
  const salvage=document.createElement('button');salvage.id='salvage-part';document.body.append(salvage);salvage.onclick=()=>model.fun.salvage();
@@ -19,5 +19,5 @@ export function installFunUI({model,save,near,pause,toast,yard}){
  open.onclick=()=>{if(['pressing','impact'].includes(model.state))return;render();pause(true);book.showModal();};
  book.addEventListener('change',e=>{if(e.target.id==='decor-theme')theme=e.target.value;render();});
  book.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-town')){book.close();town.open();return;}if(b.dataset.tab){tab=b.dataset.tab;render();}if(b.dataset.decor){const id=b.dataset.decor;if(!save.decorations.includes(id)&&!model.fun.buy(id))return;book.close();placement.start(DECORATIONS.find(d=>d.id===id));}if(b.dataset.crane){const action=b.dataset.crane;const ok=action==='buy'?model.fun.buyCrane():near(CRANE)&&(action==='scoop'?model.fun.scoop():model.fun.drop());if(ok){close();toast(action==='buy'?'Magnet crane built! Drive to the east side of the baler.':action==='scoop'?'Magnet swinging! Reopen FUN YARD → MAGNET CRANE to drop.':'Delivering scrap to the baler!');}else render();}});
- return{isOpen:()=>book.open||placement.active()||town.isOpen(),update(){open.hidden=save.crushed<1;open.disabled=['pressing','impact'].includes(model.state);salvage.hidden=!['towing','ready'].includes(model.state)||save.salvagedDelivery===save.crushed||model.progressionDisabled;salvage.textContent='SALVAGE · +1 PART · +$'+Math.max(12,Math.round(model.vehicle.value*.3));}};
+ return{openBusiness:id=>town.open(id),isOpen:()=>book.open||placement.active()||town.isOpen(),update(){open.hidden=save.crushed<1;open.disabled=['pressing','impact'].includes(model.state);salvage.hidden=!['towing','ready'].includes(model.state)||save.salvagedDelivery===save.crushed||model.progressionDisabled;salvage.textContent='SALVAGE · +1 PART · +$'+Math.max(12,Math.round(model.vehicle.value*.3));}};
 }

@@ -1,4 +1,4 @@
-import * as THREE from '../vendor/three.module.js?v=0.9.0';
+import * as THREE from '../vendor/three.module.js?v=0.10.0';
 export function installIceCreamArt(yard,scene){
  const root=new THREE.Group();scene.add(root);const person=(color,worker=false)=>{const g=new THREE.Group();yard.box(.36,.55,.3,color,g,0,.6,0);yard.box(.29,.3,.28,'#D9A86A',g,0,1.02,0);for(const x of [-.1,.1])yard.box(.12,.35,.14,'#2B1D0E',g,x,.18,0);if(worker){yard.box(.42,.12,.38,'#FFFFFF',g,0,1.2,0);yard.box(.25,.32,.04,'#FFFFFF',g,0,.6,.18);}const cone=new THREE.Group();yard.cylinder(.08,.18,'#D9A86A',cone,0,0,0);yard.box(.18,.18,.18,'#FF91CF',cone,0,.14,0);cone.position.set(.3,.7,.2);cone.visible=false;g.add(cone);g.userData.cone=cone;root.add(g);return g;};
  const queue=Array.from({length:5},(_,i)=>person(['#3A86FF','#FF4D5A','#FFD23F','#B58CFF','#69E6FF'][i])),worker=person('#3A86FF',true),leaving=person('#FF4D5A');let lastServed=-1,exitTime=0;const point=new THREE.Vector3(),start=new THREE.Vector3(),target=new THREE.Vector3();

@@ -1,13 +1,14 @@
-import {normalizeBusinesses} from './business-content.js?v=0.9.0';
-import {SPECIALS,DECORATIONS} from './fun-content.js?v=0.9.0';
-import { CONFIG, ALL_VEHICLES, clamp } from './config.js?v=0.9.0';
+import {normalizeMobility} from './world-rules.js?v=0.10.0';
+import {normalizeBusinesses} from './business-content.js?v=0.10.0';
+import {SPECIALS,DECORATIONS} from './fun-content.js?v=0.10.0';
+import { CONFIG, ALL_VEHICLES, clamp } from './config.js?v=0.10.0';
 export const SAVE_KEY = 'junkyard-crush.save.v6';
 export const LEGACY_SAVE_KEY = 'junkyard-crush.save';
-export function freshSave() { return { version: 6, buildParts:0, businesses:normalizeBusinesses(), decorations:[], decorPlacements:{}, decorSlots:Array(8).fill(''), specialDiscoveries:[], salvagedDelivery:-1, salvagedParts:0, craneOwned:false, craneCargo:0, craneTimer:0, craneMode:'hold', carriedScrap:0, carriedBaleValue:0, balerFeed:0, readyBales:[], workerPaused:false, yardId:'rustbucket', yardSales:0, legacyBonus:0, soldYardValue:0, surplusPermit:false, countyCollectionClaimed:false, cash: 0, balerOwned:false, workerOwned:false, depotOwned:false, scrapLoads:0, balerRemaining:0, balerPayout:0, balesSold:0, jobIndex:0, jobActive:false, jobProgress:0, jobsCompleted:0, lastSeen:0, collectionCounts:{}, rareDiscoveries:[], collectionClaimed:false, rareCollectionClaimed:false, speedLevel: 0, powerLevel:0, handlingLevel:0, valueLevel:0, zoneLevel:0, magnetLevel:0, landOwned:false, discoveries:[], crushed: 0, perfects: 0, lifetimeCash: 0, settings: { master: .7, music: .2, sfx: .8, shake: .55, reduced: false }, firsts: [] }; }
+export function freshSave() { return { version: 6, mobility:null, buildParts:0, businesses:normalizeBusinesses(), decorations:[], decorPlacements:{}, decorSlots:Array(8).fill(''), specialDiscoveries:[], salvagedDelivery:-1, salvagedParts:0, craneOwned:false, craneCargo:0, craneTimer:0, craneMode:'hold', carriedScrap:0, carriedBaleValue:0, balerFeed:0, readyBales:[], workerPaused:false, yardId:'rustbucket', yardSales:0, legacyBonus:0, soldYardValue:0, surplusPermit:false, countyCollectionClaimed:false, cash: 0, balerOwned:false, workerOwned:false, depotOwned:false, scrapLoads:0, balerRemaining:0, balerPayout:0, balesSold:0, jobIndex:0, jobActive:false, jobProgress:0, jobsCompleted:0, lastSeen:0, collectionCounts:{}, rareDiscoveries:[], collectionClaimed:false, rareCollectionClaimed:false, speedLevel: 0, powerLevel:0, handlingLevel:0, valueLevel:0, zoneLevel:0, magnetLevel:0, landOwned:false, discoveries:[], crushed: 0, perfects: 0, lifetimeCash: 0, settings: { master: .7, music: .2, sfx: .8, shake: .55, reduced: false }, firsts: [] }; }
 export function normalizeSave(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Invalid save');
   if (![0,1,2,3,4,5,6].includes(raw.version)) throw new Error('Unsupported save version');
-  const save = freshSave();
+  const save = freshSave();save.mobility=normalizeMobility(raw.mobility);
   const decorIds=new Set(DECORATIONS.map(d=>d.id)),specialIds=new Set(SPECIALS.map(d=>d.id));
   save.decorations=Array.isArray(raw.decorations)?[...new Set(raw.decorations.filter(id=>decorIds.has(id)))]:[];
   save.specialDiscoveries=Array.isArray(raw.specialDiscoveries)?[...new Set(raw.specialDiscoveries.filter(id=>specialIds.has(id)))]:[];

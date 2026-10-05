@@ -1,5 +1,5 @@
-import {placementError} from './decor-layout.js?v=0.9.0';
-import {DECORATIONS,DISPLAY_SPOTS,CRANE} from './fun-content.js?v=0.9.0';
+import {placementError} from './decor-layout.js?v=0.10.0';
+import {DECORATIONS,DISPLAY_SPOTS,CRANE} from './fun-content.js?v=0.10.0';
 export class YardFun{
  constructor(model){this.model=model;this.save=model.save;}
  commit(name,data={}){this.model.event(name,data);this.model.persist();}

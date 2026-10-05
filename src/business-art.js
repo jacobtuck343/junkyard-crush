@@ -1,5 +1,5 @@
-import * as THREE from '../vendor/three.module.js?v=0.9.0';
-import {sculpture} from './fun-art.js?v=0.9.0';
+import * as THREE from '../vendor/three.module.js?v=0.10.0';
+import {sculpture} from './fun-art.js?v=0.10.0';
 export function businessPiece(f,shape,color){
  const g=new THREE.Group(),b=(w,h,d,x,y,z,c=color)=>f.box(w,h,d,c,g,x,y,z);
  const add=(type,x=0,z=0,scale=1)=>{const m=sculpture(f,type,color);m.position.set(x,0,z);m.scale.setScalar(scale);g.add(m);return m;};

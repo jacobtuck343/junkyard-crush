@@ -67,3 +67,9 @@ body.decorating> :not(#game):not(#decor-placement){visibility:hidden!important}
 .ice-supplies{border:3px solid #2B1D0E;border-radius:14px;background:#FFEBF6;padding:10px;margin:10px 0}.ice-supplies h3{margin:0}.ice-supplies div{display:flex;flex-wrap:wrap;gap:6px}.ice-supplies button{margin:4px 0;font-size:15px!important}
 
 #town-book.town-watching>label,#town-book.town-watching>[data-goal]{display:none}#town-book.town-watching .town-layout{grid-template-columns:1fr;height:calc(94dvh - 130px);min-height:250px}#town-book.town-watching .town-world{height:100%;flex:1}.town-world [data-back]{position:absolute;top:8px;left:8px;background:white!important;color:#2B1D0E!important}
+
+/* Connected district and parked forklift controls. */
+#rig-action,#gate-notice{position:fixed;right:14px;width:154px;z-index:16;min-height:48px;padding:8px;font-size:15px}#rig-action{top:254px;background:white;color:#2B1D0E}#gate-notice{top:311px;background:#FFD23F;color:#2B1D0E}#gate-notice.new-car{animation:ready-pulse .5s 3}#town-action{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:92vw;background:#3A86FF;color:white;min-height:52px;padding:12px;z-index:18;font-size:18px}
+body.in-town #press-button,body.in-town #upgrades-open,body.in-town #yard-status,body.in-town #upgrade-label,body.in-town #land-label,body.in-town #machine-label,body.in-town #salvage-part,body.in-town footer{display:none!important}#town-action[hidden],#rig-action[hidden],#gate-notice[hidden]{display:none}
+@media(max-width:700px){#rig-action,#gate-notice{right:10px;width:104px;font-size:13px;min-height:44px}#rig-action{top:228px}#gate-notice{top:282px}#town-action{font-size:16px}body.in-town .objective{max-width:245px}}
+@media(max-height:500px){#rig-action{top:225px}#gate-notice{top:276px}body.in-town .objective p{font-size:12px}}

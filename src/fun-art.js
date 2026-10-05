@@ -1,7 +1,7 @@
-import {decorLayout} from './decor-layout.js?v=0.9.0';
-import {batchStatic} from './static-batches.js?v=0.9.0';
-import * as THREE from '../vendor/three.module.js?v=0.9.0';
-import {DECORATIONS,DISPLAY_SPOTS,CRANE} from './fun-content.js?v=0.9.0';
+import {decorLayout} from './decor-layout.js?v=0.10.0';
+import {batchStatic} from './static-batches.js?v=0.10.0';
+import * as THREE from '../vendor/three.module.js?v=0.10.0';
+import {DECORATIONS,DISPLAY_SPOTS,CRANE} from './fun-content.js?v=0.10.0';
 // All sculpture parts reuse the scene's box/cylinder geometry and cached materials.
 export function sculpture(f,shape,color){
  const g=new THREE.Group(),ink='#2B1D0E',white='#FFFFFF',yellow='#FFD23F';
